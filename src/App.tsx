@@ -1,121 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 
-function App() {
-  const [count, setCount] = useState(0)
+// Layout
+import { ProtectedRoute } from './components/layout/ProtectedRoute';
+import { AppShell } from './components/layout/AppShell';
 
-  return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+// Auth
+import LoginRedirect from './pages/auth/LoginRedirect';
 
-      <div className="ticks"></div>
+// Onboarding
+import { OnboardingLayout } from './pages/onboarding/OnboardingLayout';
+import Step1Link from './pages/onboarding/Step1Link';
+import Step2Tables from './pages/onboarding/Step2Tables';
+import Step3Hours from './pages/onboarding/Step3Hours';
+import Step4Customize from './pages/onboarding/Step4Customize';
+import Step5Widget from './pages/onboarding/Step5Widget';
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+// Dashboard
+import { DashboardLayout } from './pages/dashboard/DashboardLayout';
+import Today from './pages/dashboard/Today';
+import Reservations from './pages/dashboard/Reservations';
+import Widget from './pages/dashboard/Widget';
+import Settings from './pages/dashboard/Settings';
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+function RootRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  // Si pas connecté → redirect vers lakreme.fr pour login
+  if (!user) return <Navigate to="/login" replace />;
+  // TODO : vérifier si onboarding complété (widget_config existe)
+  // Pour Sprint 1 : on redirige vers onboarding/link par défaut
+  return <Navigate to="/onboarding/link" replace />;
 }
 
-export default App
+export default function App() {
+  return (
+    <BrowserRouter>
+      <div className="lk-bg-mesh" />
+      <Routes>
+        {/* Root */}
+        <Route path="/" element={<RootRedirect />} />
+
+        {/* Auth */}
+        <Route path="/login" element={<LoginRedirect />} />
+
+        {/* Onboarding (protégé) */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<OnboardingLayout />}>
+            <Route path="/onboarding/link"      element={<Step1Link />} />
+            <Route path="/onboarding/tables"    element={<Step2Tables />} />
+            <Route path="/onboarding/hours"     element={<Step3Hours />} />
+            <Route path="/onboarding/customize" element={<Step4Customize />} />
+            <Route path="/onboarding/widget"    element={<Step5Widget />} />
+          </Route>
+        </Route>
+
+        {/* Dashboard (protégé) */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<AppShell />}>
+            <Route path="/dashboard"              element={<Today />} />
+            <Route path="/dashboard/reservations" element={<Reservations />} />
+            <Route path="/dashboard/widget"       element={<Widget />} />
+            <Route path="/dashboard/settings"     element={<Settings />} />
+          </Route>
+        </Route>
+
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}

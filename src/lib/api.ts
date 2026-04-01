@@ -1,0 +1,214 @@
+/**
+ * Client API FastAPI — La Krème Reservation Service
+ * Wrapper fetch avec injection automatique JWT Supabase
+ */
+import { supabase } from './supabase';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+const WIDGET_BASE = import.meta.env.VITE_WIDGET_BASE_URL || 'http://localhost:8001';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+export interface ApiError {
+  status: number;
+  message: string;
+  code?: string;
+}
+
+export interface WidgetConfigPublic {
+  restaurant_id: string;
+  is_active: boolean;
+  restaurant_name: string;
+  restaurant_address?: string;
+  restaurant_phone?: string;
+  advance_booking_days: number;
+  min_cancel_hours: number;
+  welcome_message?: string;
+  accent_color: string;
+  show_branding: boolean;
+  confirmation_mode: string;
+  max_party_size: number;
+}
+
+export interface SlotItem {
+  time: string;
+  service_name: string;
+  duration_min: number;
+  available: boolean;
+  remaining_capacity: number;
+}
+
+export interface TableItem {
+  id: string;
+  name: string;
+  seats: number;
+  is_active: boolean;
+  display_order: number;
+}
+
+export interface OpeningHoursItem {
+  id: string;
+  day_of_week: number;
+  service_name: string;
+  open_time: string;
+  close_time: string;
+  slot_duration_min: number;
+  slot_interval_min: number;
+  is_active: boolean;
+}
+
+export interface ReservationItem {
+  id: string;
+  confirmation_code: string;
+  guest_first_name: string;
+  guest_last_name: string;
+  guest_email: string;
+  guest_phone: string;
+  party_size: number;
+  reservation_date: string;
+  reservation_time: string;
+  status: string;
+  notes?: string;
+  occasion?: string;
+  created_at: string;
+}
+
+export interface SnippetResponse {
+  iframe_snippet: string;
+  webcomponent_snippet: string;
+  widget_url: string;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+async function getAuthHeaders(): Promise<HeadersInit> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers: HeadersInit = { 'Content-Type': 'application/json' };
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  }
+  return headers;
+}
+
+async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {},
+  authRequired = false,
+): Promise<T> {
+  const headers: HeadersInit = authRequired
+    ? await getAuthHeaders()
+    : { 'Content-Type': 'application/json' };
+
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers: { ...headers, ...(options.headers || {}) },
+  });
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    const error: ApiError = {
+      status: res.status,
+      message: body.detail || body.message || `Erreur ${res.status}`,
+      code: body.error,
+    };
+    throw error;
+  }
+
+  if (res.status === 204) return undefined as T;
+  return res.json();
+}
+
+// ─── Endpoints publics widget ─────────────────────────────────────────────────
+
+export const getWidgetConfig = (restaurantId: string, lang = 'fr') =>
+  apiFetch<WidgetConfigPublic>(`/api/v1/widget/${restaurantId}/config?lang=${lang}`);
+
+export const getAvailability = (restaurantId: string, month: string, guests: number) =>
+  apiFetch<{ month: string; guests: number; dates: { date: string; available: boolean }[] }>(
+    `/api/v1/widget/${restaurantId}/availability?month=${month}&guests=${guests}`
+  );
+
+export const getSlots = (restaurantId: string, date: string, guests: number) =>
+  apiFetch<{ date: string; guests: number; slots: SlotItem[] }>(
+    `/api/v1/widget/${restaurantId}/slots?date=${date}&guests=${guests}`
+  );
+
+export const lockSlot = (restaurantId: string, body: {
+  date: string; time: string; guests: number; lang?: string;
+}) =>
+  apiFetch<{ lock_token: string; expires_at: string; table_id: string }>(
+    `/api/v1/widget/${restaurantId}/reservations/lock`,
+    { method: 'POST', body: JSON.stringify(body) }
+  );
+
+export const createReservation = (restaurantId: string, body: object) =>
+  apiFetch<{
+    reservation_id: string; confirmation_code: string; status: string;
+    restaurant_name: string; date: string; time: string; guests: number; message: string;
+  }>(
+    `/api/v1/widget/${restaurantId}/reservations`,
+    { method: 'POST', body: JSON.stringify(body) }
+  );
+
+// ─── Endpoints restaurateur (JWT requis) ─────────────────────────────────────
+
+export const getMyConfig = () =>
+  apiFetch<WidgetConfigPublic>('/api/v1/restaurant/me', {}, true);
+
+export const updateMyConfig = (body: Partial<WidgetConfigPublic>) =>
+  apiFetch('/api/v1/restaurant/me', { method: 'PATCH', body: JSON.stringify(body) }, true);
+
+export const activateWidget = () =>
+  apiFetch('/api/v1/restaurant/me/activate', { method: 'POST' }, true);
+
+export const getMyTables = () =>
+  apiFetch<TableItem[]>('/api/v1/restaurant/me/tables', {}, true);
+
+export const createTable = (body: { name: string; seats: number }) =>
+  apiFetch<TableItem>('/api/v1/restaurant/me/tables', { method: 'POST', body: JSON.stringify(body) }, true);
+
+export const updateTable = (id: string, body: Partial<TableItem>) =>
+  apiFetch<TableItem>(`/api/v1/restaurant/me/tables/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true);
+
+export const deleteTable = (id: string) =>
+  apiFetch(`/api/v1/restaurant/me/tables/${id}`, { method: 'DELETE' }, true);
+
+export const getMyHours = () =>
+  apiFetch<OpeningHoursItem[]>('/api/v1/restaurant/me/hours', {}, true);
+
+export const createHour = (body: Partial<OpeningHoursItem>) =>
+  apiFetch<OpeningHoursItem>('/api/v1/restaurant/me/hours', { method: 'POST', body: JSON.stringify(body) }, true);
+
+export const deleteHour = (id: string) =>
+  apiFetch(`/api/v1/restaurant/me/hours/${id}`, { method: 'DELETE' }, true);
+
+export const getMyReservations = (params?: { date?: string; status?: string; page?: number }) =>
+  apiFetch<{ items: ReservationItem[]; total: number }>(
+    `/api/v1/restaurant/me/reservations?${new URLSearchParams(params as Record<string, string> || {}).toString()}`,
+    {},
+    true
+  );
+
+export const getWidgetSnippet = (restaurantId: string) =>
+  apiFetch<SnippetResponse>(`/api/v1/restaurant/me/snippet?restaurant_id=${restaurantId}`);
+
+// ─── Recherche brunch_places (Step1Link) ────────────────────────────────────
+
+export interface BrunchPlaceSearch {
+  id: string;
+  name: string;
+  address: string;
+  city_name: string;
+  slug: string;
+}
+
+export const searchBrunchPlaces = (query: string) =>
+  // Appel vers meilleurbrunch-backend (API existante) pour la recherche
+  fetch(
+    `${import.meta.env.VITE_MEILLEURBRUNCH_API_URL || 'https://api.lakreme.fr'}/api/brunch/search?q=${encodeURIComponent(query)}&limit=10`,
+    { headers: { 'Content-Type': 'application/json' } }
+  )
+    .then(r => r.ok ? r.json() : Promise.reject({ status: r.status, message: 'Erreur recherche' }))
+    .then((data: BrunchPlaceSearch[]) => data);
+
+export { WIDGET_BASE };
