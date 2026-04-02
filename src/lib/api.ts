@@ -209,7 +209,7 @@ export const getMyReservations = (params?: { date?: string; status?: string; pag
   );
 
 export const getWidgetSnippet = (restaurantId: string) =>
-  apiFetch<SnippetResponse>(`/api/v1/restaurant/me/snippet?restaurant_id=${restaurantId}`);
+  apiFetchAuth<SnippetResponse>(`/api/v1/restaurant/me/snippet?restaurant_id=${restaurantId}`);
 
 // ─── Recherche brunch_places (Step1Link) ────────────────────────────────────
 
@@ -222,12 +222,14 @@ export interface BrunchPlaceSearch {
 }
 
 export const searchBrunchPlaces = (query: string) =>
-  // Appel vers meilleurbrunch-backend (API existante) pour la recherche
-  fetch(
-    `${import.meta.env.VITE_MEILLEURBRUNCH_API_URL || 'https://api.lakreme.fr'}/api/brunch/search?q=${encodeURIComponent(query)}&limit=10`,
-    { headers: { 'Content-Type': 'application/json' } }
-  )
-    .then(r => r.ok ? r.json() : Promise.reject({ status: r.status, message: 'Erreur recherche' }))
-    .then((data: BrunchPlaceSearch[]) => data);
+  apiFetchAuth<BrunchPlaceSearch[]>(
+    `/api/v1/restaurant/search?q=${encodeURIComponent(query)}&limit=10`
+  );
+
+export const createBrunchPlace = (body: { name: string; address?: string; city_name: string; phone?: string }) =>
+  apiFetchAuth<BrunchPlaceSearch>(
+    `/api/v1/restaurant/create`,
+    { method: 'POST', body: JSON.stringify(body) }
+  );
 
 export { WIDGET_BASE };
