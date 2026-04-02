@@ -34,8 +34,7 @@ export function AppShell() {
       <aside className="sidebar">
         {/* Logo */}
         <div className="sidebar-logo">
-          <div className="sidebar-logo-mark">LK</div>
-          <span className="sidebar-logo-text">La Krème</span>
+          <img src="/logo.png" alt="La Krème" style={{ height: '36px', width: 'auto' }} />
         </div>
 
         {/* Navigation */}

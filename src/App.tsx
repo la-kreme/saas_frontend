@@ -43,7 +43,7 @@ function RootRedirect() {
         minHeight: '100vh', display: 'flex', alignItems: 'center',
         justifyContent: 'center', flexDirection: 'column', gap: '16px',
       }}>
-        <div className="lk-bg-mesh" />
+
         <div className="spinner" style={{ width: '32px', height: '32px' }} />
         <p style={{ color: 'var(--lk-text-muted)', fontSize: '14px' }}>Chargement…</p>
       </div>
@@ -57,7 +57,7 @@ function RootRedirect() {
 export default function App() {
   return (
     <BrowserRouter>
-      <div className="lk-bg-mesh" />
+
       <Routes>
         {/* Root */}
         <Route path="/" element={<RootRedirect />} />

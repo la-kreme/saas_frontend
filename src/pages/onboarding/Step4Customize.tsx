@@ -10,7 +10,7 @@ import { updateMyConfig } from '../../lib/api';
  */
 export default function Step4Customize() {
   const navigate = useNavigate();
-  const [accentColor, setAccentColor] = useState('#533483');
+  const [accentColor, setAccentColor] = useState('#ED73A9');
   const [messageFr, setMessageFr] = useState('');
   const [messageEn, setMessageEn] = useState('');
   const [confirmMode, setConfirmMode] = useState<'auto' | 'manual'>('auto');
@@ -35,7 +35,7 @@ export default function Step4Customize() {
     }
   };
 
-  const PRESETS = ['#533483', '#E91E8C', '#FF6B35', '#00B4D8', '#2DC653', '#F59E0B'];
+  const PRESETS = ['#ED73A9', '#7CC0E8', '#C6546D', '#00B4D8', '#FF6B35', '#F59E0B'];
 
   return (
     <>

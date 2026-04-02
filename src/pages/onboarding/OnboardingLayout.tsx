@@ -16,7 +16,7 @@ export function OnboardingLayout() {
     <div className="onboarding-page">
       {/* Logo */}
       <div className="onboarding-logo">
-        La <span>Krème</span>
+        <img src="/logo.png" alt="La Krème" style={{ height: '48px', width: 'auto' }} />
       </div>
 
       {/* Step Progress */}

@@ -187,7 +187,7 @@ export default function Widget() {
         {/* ── Colonne droite : preview live ── */}
         <div>
           <div style={{
-            background: 'linear-gradient(135deg, #1a1726, #221e35)',
+            background: 'var(--lk-surface-2)',
             border: '1px solid var(--lk-border)', borderRadius: 'var(--radius-xl)',
             padding: '16px',
           }}>
