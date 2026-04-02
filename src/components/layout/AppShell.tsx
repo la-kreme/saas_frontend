@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet } from 'react-router-dom';
 import {
   LayoutDashboard,
   CalendarDays,
@@ -6,19 +6,22 @@ import {
   Settings,
   LogOut,
   Zap,
+  LayoutGrid,
+  Clock,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const NAV_ITEMS = [
   { to: '/dashboard',              label: "Aujourd'hui",  icon: LayoutDashboard, end: true },
   { to: '/dashboard/reservations', label: 'Réservations', icon: CalendarDays },
+  { to: '/dashboard/tables',       label: 'Tables',       icon: LayoutGrid },
+  { to: '/dashboard/hours',        label: 'Horaires',     icon: Clock },
   { to: '/dashboard/widget',       label: 'Mon Widget',   icon: Code2 },
   { to: '/dashboard/settings',     label: 'Paramètres',   icon: Settings },
 ];
 
 export function AppShell() {
   const { user, supabase } = useAuth();
-  const navigate = useNavigate();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

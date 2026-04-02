@@ -23,11 +23,16 @@ export interface WidgetConfigPublic {
   restaurant_phone?: string;
   advance_booking_days: number;
   min_cancel_hours: number;
-  welcome_message?: string;
+  welcome_message?: string;       // read-only (lang-resolved)
+  welcome_message_fr?: string;    // write
+  welcome_message_en?: string;    // write
   accent_color: string;
   show_branding: boolean;
   confirmation_mode: string;
   max_party_size: number;
+  // Settings writable fields
+  notification_email?: string;
+  notification_phone?: string;
 }
 
 export interface SlotItem {
@@ -45,6 +50,8 @@ export interface TableItem {
   is_active: boolean;
   display_order: number;
 }
+
+export type TableCreate = Pick<TableItem, 'name' | 'seats'> & { display_order?: number };
 
 export interface OpeningHoursItem {
   id: string;
@@ -118,6 +125,15 @@ async function apiFetch<T>(
   return res.json();
 }
 
+/** Helper public pour les appels authentifiés génériques (onboarding, etc.) */
+export async function apiFetchAuth<T = unknown>(
+  path: string,
+  options: RequestInit = {},
+): Promise<T> {
+  return apiFetch<T>(path, options, true);
+}
+
+
 // ─── Endpoints publics widget ─────────────────────────────────────────────────
 
 export const getWidgetConfig = (restaurantId: string, lang = 'fr') =>
@@ -164,7 +180,7 @@ export const activateWidget = () =>
 export const getMyTables = () =>
   apiFetch<TableItem[]>('/api/v1/restaurant/me/tables', {}, true);
 
-export const createTable = (body: { name: string; seats: number }) =>
+export const createTable = (body: TableCreate) =>
   apiFetch<TableItem>('/api/v1/restaurant/me/tables', { method: 'POST', body: JSON.stringify(body) }, true);
 
 export const updateTable = (id: string, body: Partial<TableItem>) =>
@@ -178,6 +194,9 @@ export const getMyHours = () =>
 
 export const createHour = (body: Partial<OpeningHoursItem>) =>
   apiFetch<OpeningHoursItem>('/api/v1/restaurant/me/hours', { method: 'POST', body: JSON.stringify(body) }, true);
+
+export const updateHour = (id: string, body: Partial<OpeningHoursItem>) =>
+  apiFetch<OpeningHoursItem>(`/api/v1/restaurant/me/hours/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true);
 
 export const deleteHour = (id: string) =>
   apiFetch(`/api/v1/restaurant/me/hours/${id}`, { method: 'DELETE' }, true);

@@ -19,9 +19,10 @@ import Step4Customize from './pages/onboarding/Step4Customize';
 import Step5Widget from './pages/onboarding/Step5Widget';
 
 // Dashboard
-import { DashboardLayout } from './pages/dashboard/DashboardLayout';
 import Today from './pages/dashboard/Today';
 import Reservations from './pages/dashboard/Reservations';
+import Tables from './pages/dashboard/Tables';
+import Hours from './pages/dashboard/Hours';
 import Widget from './pages/dashboard/Widget';
 import Settings from './pages/dashboard/Settings';
 
@@ -80,6 +81,8 @@ export default function App() {
           <Route element={<AppShell />}>
             <Route path="/dashboard"              element={<Today />} />
             <Route path="/dashboard/reservations" element={<Reservations />} />
+            <Route path="/dashboard/tables"       element={<Tables />} />
+            <Route path="/dashboard/hours"        element={<Hours />} />
             <Route path="/dashboard/widget"       element={<Widget />} />
             <Route path="/dashboard/settings"     element={<Settings />} />
           </Route>
