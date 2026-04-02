@@ -22,7 +22,7 @@ export function OnboardingLayout() {
       {/* Step Progress */}
       <div style={{ width: '100%', maxWidth: '560px', marginBottom: '32px' }}>
         <div className="step-progress">
-          {STEPS.map((step, idx) => (
+          {STEPS.map((_, idx) => (
             <div key={idx} className="step-item">
               <div className={`step-circle ${
                 idx < currentStep ? 'completed' :

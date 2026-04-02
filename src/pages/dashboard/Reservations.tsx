@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { CalendarDays, Filter, Search, Loader2 } from 'lucide-react';
+import { CalendarDays, Loader2 } from 'lucide-react';
 import { getMyReservations, type ReservationItem } from '../../lib/api';
 
 const STATUS_OPTIONS = [

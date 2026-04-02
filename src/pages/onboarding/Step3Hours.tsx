@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Plus, Trash2 } from 'lucide-react';
+import { Copy, Plus, Trash2, Loader2 } from 'lucide-react';
+import { createHour } from '../../lib/api';
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -31,10 +32,13 @@ const defaultDays = (): DayConfig[] =>
 /**
  * Step 3 — Mes horaires
  * Toggle par jour + configuration des services (open/close, duration, interval).
+ * Sauvegarde via POST /api/v1/restaurant/me/hours pour chaque service actif.
  */
 export default function Step3Hours() {
   const navigate = useNavigate();
   const [days, setDays] = useState<DayConfig[]>(defaultDays());
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const toggleDay = (dayIdx: number) => {
     setDays(prev => prev.map((d, i) =>
@@ -75,14 +79,20 @@ export default function Step3Hours() {
 
   const isValid = days.some(d => d.enabled && d.services.length > 0);
 
-  const handleNext = () => {
-    const hours = days
-      .flatMap((d, dayIdx) => d.enabled
-        ? d.services.map(s => ({ day_of_week: dayIdx, ...s }))
-        : []
+  const handleNext = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      const hoursToCreate = days.flatMap((d, dayIdx) =>
+        d.enabled ? d.services.map(s => ({ day_of_week: dayIdx, ...s })) : []
       );
-    localStorage.setItem('lk_hours', JSON.stringify(hours));
-    navigate('/onboarding/customize');
+      await Promise.all(hoursToCreate.map(h => createHour(h)));
+      navigate('/onboarding/customize');
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur lors de la sauvegarde des horaires.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -230,6 +240,8 @@ export default function Step3Hours() {
         ))}
       </div>
 
+      {error && <p className="form-error" style={{ marginTop: '12px' }}>{error}</p>}
+
       <div className="onboarding-actions">
         <button className="btn btn-ghost" onClick={() => navigate('/onboarding/tables')}>
           ← Retour
@@ -237,10 +249,13 @@ export default function Step3Hours() {
         <button
           id="btn-step3-next"
           className="btn btn-primary btn-lg"
-          disabled={!isValid}
+          disabled={!isValid || saving}
           onClick={handleNext}
         >
-          Continuer →
+          {saving
+            ? <><Loader2 size={16} style={{ animation: 'spin 0.7s linear infinite' }} /> Sauvegarde...</>
+            : 'Continuer →'
+          }
         </button>
       </div>
     </>

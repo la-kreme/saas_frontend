@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Check, Zap, ExternalLink } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
+import { getMyConfig, activateWidget, getWidgetSnippet } from '../../lib/api';
 
 /**
  * Step 5 — Mon Widget
@@ -9,20 +10,35 @@ import { WidgetPreview } from '../../components/widget/WidgetPreview';
  */
 export default function Step5Widget() {
   const navigate = useNavigate();
-  const restaurantId = localStorage.getItem('lk_restaurant_id') || '';
-  const restaurantName = localStorage.getItem('lk_restaurant_name') || 'Mon Restaurant';
+  const [restaurantId, setRestaurantId] = useState('');
+  const [restaurantName, setRestaurantName] = useState('Mon Restaurant');
+  const [iframeSnippet, setIframeSnippet] = useState('');
+  const [webComponentSnippet, setWebComponentSnippet] = useState('');
 
   const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-  const widgetSrc = `${apiBase}/widget/${restaurantId}`;
 
   const [copiedIframe, setCopiedIframe] = useState(false);
   const [copiedWC, setCopiedWC] = useState(false);
   const [activating, setActivating] = useState(false);
   const [activated, setActivated] = useState(false);
+  const [error, setError] = useState('');
 
-  const iframeSnippet = `<iframe\n  src="${widgetSrc}"\n  width="100%"\n  height="540"\n  frameborder="0"\n  style="border:none; border-radius:12px;"\n  title="Réserver — ${restaurantName}"\n  loading="lazy"\n></iframe>\n<script>\n  window.addEventListener('message', function(e) {\n    if (e.data && e.data.type === 'lk-resize') {\n      document.querySelector('iframe[src*="${restaurantId}"]').style.height = e.data.height + 'px';\n    }\n  });\n</script>`;
+  useEffect(() => {
+    // Charger la config pour récupérer le restaurant_id réel
+    getMyConfig().then(cfg => {
+      setRestaurantId(cfg.restaurant_id);
+      setRestaurantName(cfg.restaurant_name);
+      // Charger les snippets
+      return getWidgetSnippet(cfg.restaurant_id);
+    }).then(snip => {
+      setIframeSnippet(snip.iframe_snippet);
+      setWebComponentSnippet(snip.webcomponent_snippet);
+    }).catch(() => {
+      // Fallback si l'API n'est pas disponible en local
+    });
+  }, []);
 
-  const webComponentSnippet = `<script src="https://cdn.lakreme.fr/widget/v1/lakreme-widget.js" defer></script>\n<lakreme-widget\n  restaurant-id="${restaurantId}"\n  lang="fr"\n></lakreme-widget>`;
+  const widgetSrc = `${apiBase}/widget/${restaurantId}`;
 
   const copy = async (text: string, which: 'iframe' | 'wc') => {
     await navigator.clipboard.writeText(text);
@@ -38,11 +54,13 @@ export default function Step5Widget() {
   const handleActivate = async () => {
     if (!restaurantId) return;
     setActivating(true);
+    setError('');
     try {
-      // TODO Sprint 4 : POST /api/v1/restaurant/me/activate
-      await new Promise(r => setTimeout(r, 800));
+      await activateWidget();
       setActivated(true);
-      setTimeout(() => navigate('/dashboard/widget'), 1500);
+      setTimeout(() => navigate('/dashboard'), 1500);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur lors de l\'activation. Assurez-vous d\'avoir ajouté des tables et des horaires.');
     } finally {
       setActivating(false);
     }
@@ -53,6 +71,11 @@ export default function Step5Widget() {
       <div className="onboarding-step-header">
         <div className="onboarding-step-number">Étape 5 sur 5</div>
         <h1 className="onboarding-step-title">Mon Widget</h1>
+        {restaurantName && restaurantName !== 'Mon Restaurant' && (
+          <p className="text-sm" style={{ color: 'var(--lk-purple-light)', fontWeight: 600, marginBottom: '4px' }}>
+            {restaurantName}
+          </p>
+        )}
         <p className="onboarding-step-desc">
           Voici votre widget de réservation en direct. Copiez le code sur votre site
           puis activez-le pour qu'il soit visible sur La Krème.
@@ -130,6 +153,10 @@ export default function Step5Widget() {
             ? <><div className="spinner" style={{ width: '16px', height: '16px' }} /> Activation…</>
             : <><Zap size={16} /> Activer mon widget</>}
         </button>
+      )}
+
+      {error && (
+        <p className="form-error" style={{ marginTop: '12px', textAlign: 'center' }}>{error}</p>
       )}
 
       <div className="onboarding-actions" style={{ justifyContent: 'flex-start', marginTop: '12px' }}>

@@ -1,48 +1,63 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Trash2, Users } from 'lucide-react';
+import { Plus, Trash2, Users, Loader2 } from 'lucide-react';
+import { createTable } from '../../lib/api';
 
-interface Table {
-  id: string;
+interface LocalTable {
+  tempId: string;
   name: string;
   seats: number;
 }
 
 let tableCounter = 1;
 
-function makeTable(): Table {
-  return { id: crypto.randomUUID(), name: `Table ${tableCounter++}`, seats: 2 };
+function makeTable(): LocalTable {
+  return { tempId: crypto.randomUUID(), name: `Table ${tableCounter++}`, seats: 2 };
 }
 
 /**
  * Step 2 — Mes tables
  * Ajout/suppression de tables avec stepper pour les couverts.
  * Validation : ≥1 table avec seats > 0.
+ * Sauvegarde en API : POST /api/v1/restaurant/me/tables pour chaque table.
  */
 export default function Step2Tables() {
   const navigate = useNavigate();
-  const [tables, setTables] = useState<Table[]>([makeTable()]);
+  const [tables, setTables] = useState<LocalTable[]>([makeTable()]);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
   const totalCapacity = tables.reduce((sum, t) => sum + t.seats, 0);
 
   const addTable = () => setTables(prev => [...prev, makeTable()]);
+  const removeTable = (tempId: string) => setTables(prev => prev.filter(t => t.tempId !== tempId));
 
-  const removeTable = (id: string) => setTables(prev => prev.filter(t => t.id !== id));
-
-  const updateSeats = (id: string, delta: number) => {
+  const updateSeats = (tempId: string, delta: number) => {
     setTables(prev => prev.map(t =>
-      t.id === id ? { ...t, seats: Math.max(1, t.seats + delta) } : t
+      t.tempId === tempId ? { ...t, seats: Math.max(1, t.seats + delta) } : t
     ));
   };
 
-  const updateName = (id: string, name: string) => {
-    setTables(prev => prev.map(t => t.id === id ? { ...t, name } : t));
+  const updateName = (tempId: string, name: string) => {
+    setTables(prev => prev.map(t => t.tempId === tempId ? { ...t, name } : t));
   };
 
-  const handleNext = () => {
-    // TODO Sprint 4 : POST /api/v1/restaurant/me/tables pour chaque table
-    localStorage.setItem('lk_tables', JSON.stringify(tables));
-    navigate('/onboarding/hours');
+  const handleNext = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      // Créer toutes les tables en parallèle
+      await Promise.all(
+        tables.map((t, i) =>
+          createTable({ name: t.name, seats: t.seats, display_order: i })
+        )
+      );
+      navigate('/onboarding/hours');
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur lors de la sauvegarde des tables.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const isValid = tables.length > 0 && tables.every(t => t.seats > 0 && t.name.trim());
@@ -61,13 +76,13 @@ export default function Step2Tables() {
       {/* Tables list */}
       <div className="flex-col gap-3">
         {tables.map((table) => (
-          <div key={table.id} className="table-row animate-slide-up">
+          <div key={table.tempId} className="table-row animate-slide-up">
             {/* Name */}
             <input
               className="form-input"
               style={{ flex: 1, height: '36px', fontSize: '13px' }}
               value={table.name}
-              onChange={e => updateName(table.id, e.target.value)}
+              onChange={e => updateName(table.tempId, e.target.value)}
               placeholder="Nom de la table"
             />
 
@@ -75,14 +90,14 @@ export default function Step2Tables() {
             <div className="stepper">
               <button
                 className="stepper-btn"
-                onClick={() => updateSeats(table.id, -1)}
+                onClick={() => updateSeats(table.tempId, -1)}
                 disabled={table.seats <= 1}
                 aria-label="Réduire"
               >—</button>
               <span className="stepper-value">{table.seats}</span>
               <button
                 className="stepper-btn"
-                onClick={() => updateSeats(table.id, 1)}
+                onClick={() => updateSeats(table.tempId, 1)}
                 aria-label="Augmenter"
               >+</button>
             </div>
@@ -95,7 +110,7 @@ export default function Step2Tables() {
             {tables.length > 1 && (
               <button
                 className="btn btn-ghost btn-sm"
-                onClick={() => removeTable(table.id)}
+                onClick={() => removeTable(table.tempId)}
                 aria-label="Supprimer"
                 style={{ padding: '0 8px', color: 'var(--lk-error)' }}
               >
@@ -131,6 +146,8 @@ export default function Step2Tables() {
         </span>
       </div>
 
+      {error && <p className="form-error" style={{ marginTop: '12px' }}>{error}</p>}
+
       <div className="onboarding-actions">
         <button className="btn btn-ghost" onClick={() => navigate('/onboarding/link')}>
           ← Retour
@@ -138,10 +155,13 @@ export default function Step2Tables() {
         <button
           id="btn-step2-next"
           className="btn btn-primary btn-lg"
-          disabled={!isValid}
+          disabled={!isValid || saving}
           onClick={handleNext}
         >
-          Continuer →
+          {saving
+            ? <><Loader2 size={16} style={{ animation: 'spin 0.7s linear infinite' }} /> Sauvegarde...</>
+            : 'Continuer →'
+          }
         </button>
       </div>
     </>

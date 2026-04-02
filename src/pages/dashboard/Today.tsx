@@ -9,7 +9,7 @@ import { getMyReservations, type ReservationItem } from '../../lib/api';
 export default function Today() {
   const [reservations, setReservations] = useState<ReservationItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+
 
   const today = new Date().toISOString().split('T')[0];
 

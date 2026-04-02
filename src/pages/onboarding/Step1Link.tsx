@@ -1,7 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, CheckCircle2, Loader2 } from 'lucide-react';
-import { searchBrunchPlaces, type BrunchPlaceSearch } from '../../lib/api';
+import { searchBrunchPlaces, type BrunchPlaceSearch, apiFetchAuth } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 /**
  * Step 1 — Liaison à la fiche restaurant
@@ -10,6 +11,7 @@ import { searchBrunchPlaces, type BrunchPlaceSearch } from '../../lib/api';
  */
 export default function Step1Link() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<BrunchPlaceSearch[]>([]);
   const [selected, setSelected] = useState<BrunchPlaceSearch | null>(null);
@@ -43,13 +45,24 @@ export default function Step1Link() {
     setLinking(true);
     setError('');
     try {
-      // TODO Sprint 4 : appel POST /api/v1/restaurant/link pour créer widget_config
-      // Pour Sprint 1, simuler le succès et sauvegarder en localStorage
-      localStorage.setItem('lk_restaurant_id', selected.id);
-      localStorage.setItem('lk_restaurant_name', selected.name);
+      await apiFetchAuth('/api/v1/restaurant/me/link', {
+        method: 'POST',
+        body: JSON.stringify({
+          restaurant_id: selected.id,
+          restaurant_name: selected.name,
+          restaurant_address: selected.address,
+          restaurant_city: selected.city_name,
+          notification_email: user?.email ?? '',
+        }),
+      });
       navigate('/onboarding/tables');
-    } catch {
-      setError("Impossible de lier votre fiche. Vérifiez votre connexion.");
+    } catch (err: any) {
+      if (err?.status === 409) {
+        // Déjà lié — on peut quand même avancer
+        navigate('/onboarding/tables');
+      } else {
+        setError(err?.message ?? "Impossible de lier votre fiche. Vérifiez votre connexion.");
+      }
     } finally {
       setLinking(false);
     }

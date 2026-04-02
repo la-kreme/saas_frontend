@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Palette, MessageSquare, CheckCircle2, Clock } from 'lucide-react';
+import { Palette, MessageSquare, CheckCircle2, Clock, Loader2 } from 'lucide-react';
+import { updateMyConfig } from '../../lib/api';
 
 /**
  * Step 4 — Personnalisation (tout optionnel)
  * Couleur, message de bienvenue FR/EN, mode de confirmation.
+ * Sauvegarde via PATCH /api/v1/restaurant/me.
  */
 export default function Step4Customize() {
   const navigate = useNavigate();
@@ -12,15 +14,25 @@ export default function Step4Customize() {
   const [messageFr, setMessageFr] = useState('');
   const [messageEn, setMessageEn] = useState('');
   const [confirmMode, setConfirmMode] = useState<'auto' | 'manual'>('auto');
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleNext = () => {
-    localStorage.setItem('lk_customize', JSON.stringify({
-      accent_color: accentColor,
-      welcome_message_fr: messageFr,
-      welcome_message_en: messageEn,
-      confirmation_mode: confirmMode,
-    }));
-    navigate('/onboarding/widget');
+  const handleNext = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      await updateMyConfig({
+        accent_color: accentColor,
+        welcome_message_fr: messageFr || undefined,
+        welcome_message_en: messageEn || undefined,
+        confirmation_mode: confirmMode,
+      });
+      navigate('/onboarding/widget');
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur lors de la sauvegarde.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const PRESETS = ['#533483', '#E91E8C', '#FF6B35', '#00B4D8', '#2DC653', '#F59E0B'];
@@ -166,6 +178,8 @@ export default function Step4Customize() {
         </div>
       </div>
 
+      {error && <p className="form-error" style={{ marginTop: '12px' }}>{error}</p>}
+
       <div className="onboarding-actions">
         <button className="btn btn-ghost" onClick={() => navigate('/onboarding/hours')}>
           ← Retour
@@ -173,9 +187,13 @@ export default function Step4Customize() {
         <button
           id="btn-step4-next"
           className="btn btn-primary btn-lg"
+          disabled={saving}
           onClick={handleNext}
         >
-          Continuer →
+          {saving
+            ? <><Loader2 size={16} style={{ animation: 'spin 0.7s linear infinite' }} /> Sauvegarde...</>
+            : 'Continuer →'
+          }
         </button>
       </div>
     </>

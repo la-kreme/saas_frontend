@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Save, Mail, Phone, Clock, CalendarDays } from 'lucide-react';
+import { getMyConfig, updateMyConfig } from '../../lib/api';
 
 /**
  * Dashboard — Paramètres
@@ -8,19 +9,39 @@ import { Save, Mail, Phone, Clock, CalendarDays } from 'lucide-react';
 export default function Settings() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
 
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [minCancelHours, setMinCancelHours] = useState(2);
   const [advanceBookingDays, setAdvanceBookingDays] = useState(30);
 
+  // Charger les valeurs actuelles au montage
+  useEffect(() => {
+    getMyConfig().then(cfg => {
+      setEmail(cfg.notification_email ?? '');
+      setPhone(cfg.notification_phone ?? '');
+      setMinCancelHours(cfg.min_cancel_hours ?? 2);
+      setAdvanceBookingDays(cfg.advance_booking_days ?? 30);
+    }).catch(() => {
+      // Silencieux si non connecté (mode dev)
+    });
+  }, []);
+
   const handleSave = async () => {
     setSaving(true);
+    setError('');
     try {
-      // TODO Sprint 4 : PATCH /api/v1/restaurant/me
-      await new Promise(r => setTimeout(r, 600));
+      await updateMyConfig({
+        notification_email: email,
+        notification_phone: phone || undefined,
+        min_cancel_hours: minCancelHours,
+        advance_booking_days: advanceBookingDays,
+      });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
+    } catch (err: any) {
+      setError(err?.message ?? 'Erreur lors de la sauvegarde.');
     } finally {
       setSaving(false);
     }
@@ -144,6 +165,8 @@ export default function Settings() {
             </div>
           </div>
 
+          {error && <p className="form-error" style={{ marginTop: '8px' }}>{error}</p>}
+
           {/* Save */}
           <button
             id="btn-settings-save"
@@ -153,7 +176,7 @@ export default function Settings() {
             onClick={handleSave}
           >
             {saving ? <><div className="spinner" style={{ width: '14px', height: '14px' }} /> Enregistrement...</>
-              : saved ? <>✅ Enregistré</>
+              : saved ? <>&#x2705; Enregistré</>
               : <><Save size={14} /> Enregistrer les modifications</>
             }
           </button>
