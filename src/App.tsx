@@ -1,5 +1,7 @@
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+
 
 // Layout
 import { ProtectedRoute } from './components/layout/ProtectedRoute';
@@ -25,11 +27,29 @@ import Settings from './pages/dashboard/Settings';
 
 function RootRedirect() {
   const { user, loading } = useAuth();
-  if (loading) return null;
-  // Si pas connecté → redirect vers lakreme.fr pour login
+
+  // Timeout de sécurité : si toujours en chargement après 3s (Supabase mal configuré),
+  // on affiche quand même le contenu plutôt qu'une page blanche
+  const [timedOut, setTimedOut] = React.useState(false);
+  React.useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), 3000);
+    return () => clearTimeout(t);
+  }, []);
+
+  if (loading && !timedOut) {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center',
+        justifyContent: 'center', flexDirection: 'column', gap: '16px',
+      }}>
+        <div className="lk-bg-mesh" />
+        <div className="spinner" style={{ width: '32px', height: '32px' }} />
+        <p style={{ color: 'var(--lk-text-muted)', fontSize: '14px' }}>Chargement…</p>
+      </div>
+    );
+  }
+
   if (!user) return <Navigate to="/login" replace />;
-  // TODO : vérifier si onboarding complété (widget_config existe)
-  // Pour Sprint 1 : on redirige vers onboarding/link par défaut
   return <Navigate to="/onboarding/link" replace />;
 }
 

@@ -10,28 +10,60 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // We dynamically determine the cookie domain. In local dev without lakreme.fr, we don't set the domain.
 const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
 const cookieDomain = isLocalhost ? undefined : '.lakreme.fr';
+// Secure flag requires HTTPS — localhost uses HTTP, so we must omit it there
+const secureFlag = isLocalhost ? '' : '; Secure';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: {
       getItem(key: string) {
-        // Read cookie
         if (typeof document === 'undefined') return null;
         const match = document.cookie.match(new RegExp('(^| )' + key + '=([^;]+)'));
-        return match ? decodeURIComponent(match[2]) : null;
+        if (!match) return null;
+        
+        const val = match[2];
+        if (val === 'chunked') {
+            let fullVal = '';
+            let i = 0;
+            while (true) {
+                const chunkMatch = document.cookie.match(new RegExp('(^| )' + key + '\\.' + i + '=([^;]+)'));
+                if (!chunkMatch) break;
+                fullVal += chunkMatch[2];
+                i++;
+            }
+            return decodeURIComponent(fullVal);
+        }
+        return decodeURIComponent(val);
       },
       setItem(key: string, value: string) {
-        // Write cookie
         if (typeof document === 'undefined') return;
         const domainStr = cookieDomain ? `; domain=${cookieDomain}` : '';
-        // SameSite=Lax allows the cookie to be sent when navigating from lakreme.fr to app.lakreme.fr
-        document.cookie = `${key}=${encodeURIComponent(value)}; path=/${domainStr}; max-age=31536000; SameSite=Lax; Secure`;
+        const encoded = encodeURIComponent(value);
+        const chunkSize = 3000;
+
+        document.cookie = `${key}=; path=/${domainStr}; max-age=0; SameSite=Lax${secureFlag}`;
+        for (let i = 0; i < 10; i++) {
+            document.cookie = `${key}.${i}=; path=/${domainStr}; max-age=0; SameSite=Lax${secureFlag}`;
+        }
+
+        if (encoded.length <= chunkSize) {
+            document.cookie = `${key}=${encoded}; path=/${domainStr}; max-age=31536000; SameSite=Lax${secureFlag}`;
+        } else {
+            const chunksCount = Math.ceil(encoded.length / chunkSize);
+            document.cookie = `${key}=chunked; path=/${domainStr}; max-age=31536000; SameSite=Lax${secureFlag}`;
+            for (let i = 0; i < chunksCount; i++) {
+                const chunk = encoded.substring(i * chunkSize, (i + 1) * chunkSize);
+                document.cookie = `${key}.${i}=${chunk}; path=/${domainStr}; max-age=31536000; SameSite=Lax${secureFlag}`;
+            }
+        }
       },
       removeItem(key: string) {
-        // Remove cookie
         if (typeof document === 'undefined') return;
         const domainStr = cookieDomain ? `; domain=${cookieDomain}` : '';
-        document.cookie = `${key}=; path=/${domainStr}; max-age=0; SameSite=Lax; Secure`;
+        document.cookie = `${key}=; path=/${domainStr}; max-age=0; SameSite=Lax${secureFlag}`;
+        for (let i = 0; i < 10; i++) {
+            document.cookie = `${key}.${i}=; path=/${domainStr}; max-age=0; SameSite=Lax${secureFlag}`;
+        }
       }
     },
     detectSessionInUrl: true,
