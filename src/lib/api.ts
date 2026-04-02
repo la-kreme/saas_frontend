@@ -28,6 +28,7 @@ export interface WidgetConfigPublic {
   welcome_message_en?: string;    // write
   accent_color: string;
   show_branding: boolean;
+  show_on_directory: boolean;
   confirmation_mode: string;
   max_party_size: number;
   // Settings writable fields

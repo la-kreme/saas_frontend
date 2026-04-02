@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Copy, Check, ExternalLink, Maximize2 } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
 
@@ -45,6 +45,29 @@ export default function Widget() {
   const [copiedWC, setCopiedWC] = useState(false);
   const [activeTab, setActiveTab] = useState<'iframe' | 'webcomponent'>('iframe');
   const [testModalOpen, setTestModalOpen] = useState(false);
+  const [showOnDirectory, setShowOnDirectory] = useState(false);
+  const [loadingToggle, setLoadingToggle] = useState(false);
+
+  useEffect(() => {
+    import('../../lib/api').then(({ getMyConfig }) => {
+      getMyConfig().then(cfg => {
+        setShowOnDirectory(cfg.show_on_directory ?? false);
+      });
+    });
+  }, []);
+
+  const handleToggleDirectory = async (checked: boolean) => {
+    setLoadingToggle(true);
+    setShowOnDirectory(checked);
+    try {
+      const { updateMyConfig } = await import('../../lib/api');
+      await updateMyConfig({ show_on_directory: checked });
+    } catch {
+      setShowOnDirectory(!checked);
+    } finally {
+      setLoadingToggle(false);
+    }
+  };
 
   const iframeSnippet = `<iframe\n  src="${widgetSrc}"\n  width="100%"\n  height="540"\n  frameborder="0"\n  style="border:none; border-radius:12px;"\n  title="Réserver — ${restaurantName}"\n  loading="lazy"\n></iframe>\n<script>\n  window.addEventListener('message', function(e) {\n    if (e.data && e.data.type === 'lk-resize') {\n      document.querySelector('iframe[src*="${restaurantId}"]').style.height = e.data.height + 'px';\n    }\n  });\n</script>`;
 
@@ -117,8 +140,35 @@ export default function Widget() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
         {/* ── Colonne gauche : snippets + guide ── */}
-        <div className="flex-col gap-4">
-          {/* Tabs */}
+        <div className="flex-col gap-6 flex-1">
+          {/* Option Annuaire La Krème */}
+          <div className="card" style={{ padding: '20px', border: '1px solid var(--lk-border-focus)' }}>
+            <h3 className="section-title" style={{ marginBottom: '12px' }}>
+              Intégration Annuaire La Krème
+            </h3>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold mb-1">
+                  Afficher sur meilleurbrunch.com
+                </p>
+                <p className="text-xs text-muted" style={{ maxWidth: '400px' }}>
+                  Permet aux visiteurs de réserver directement depuis votre fiche annuaire. 
+                  Désactivez cette option si vous souhaitez être masqué temporairement de l'annuaire.
+                </p>
+              </div>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={showOnDirectory}
+                  onChange={(e) => handleToggleDirectory(e.target.checked)}
+                  disabled={loadingToggle}
+                />
+                <span className="slider round"></span>
+              </label>
+            </div>
+          </div>
+
+          {/* Snippets Installation */}
           <div className="flex gap-2">
             {(['iframe', 'webcomponent'] as const).map(tab => (
               <button

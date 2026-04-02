@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Check, Zap, ExternalLink } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
-import { getMyConfig, activateWidget, getWidgetSnippet } from '../../lib/api';
+import { getMyConfig, activateWidget, getWidgetSnippet, updateMyConfig } from '../../lib/api';
 
 /**
  * Step 5 — Mon Widget
@@ -21,6 +21,7 @@ export default function Step5Widget() {
   const [copiedWC, setCopiedWC] = useState(false);
   const [activating, setActivating] = useState(false);
   const [activated, setActivated] = useState(false);
+  const [showOnDirectory, setShowOnDirectory] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -56,6 +57,9 @@ export default function Step5Widget() {
     setActivating(true);
     setError('');
     try {
+      if (showOnDirectory) {
+        await updateMyConfig({ show_on_directory: true });
+      }
       await activateWidget();
       setActivated(true);
       setTimeout(() => navigate('/dashboard'), 1500);
@@ -79,6 +83,28 @@ export default function Step5Widget() {
         <p className="onboarding-step-desc">
           Voici votre widget de réservation en direct. Copiez le code sur votre site
           puis activez-le pour qu'il soit visible sur La Krème.
+        </p>
+      </div>
+
+      {/* Options */}
+      <div style={{
+          padding: '16px', background: 'var(--lk-surface-2)', border: '1px solid var(--lk-border)',
+          borderRadius: 'var(--radius)', marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '8px'
+        }}>
+        <div className="flex items-center gap-3">
+          <input
+            type="checkbox"
+            id="showOnDirectory"
+            checked={showOnDirectory}
+            onChange={(e) => setShowOnDirectory(e.target.checked)}
+            style={{ width: '18px', height: '18px', accentColor: 'var(--lk-primary)' }}
+          />
+          <label htmlFor="showOnDirectory" style={{ fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
+            Activer la réservation sur l'annuaire La Krème
+          </label>
+        </div>
+        <p className="text-xs text-muted" style={{ marginLeft: '30px' }}>
+          Les visiteurs de meilleurbrunch.com pourront réserver directement depuis votre fiche établissement. Fortement recommandé pour booster vos réservations.
         </p>
       </div>
 

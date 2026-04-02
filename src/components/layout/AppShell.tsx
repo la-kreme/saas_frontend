@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { NavLink, Outlet } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -22,6 +23,25 @@ const NAV_ITEMS = [
 
 export function AppShell() {
   const { user, supabase } = useAuth();
+  const [restaurantName, setRestaurantName] = useState<string>('');
+
+  useEffect(() => {
+    // Essayer de récupérer le nom synchronisé
+    const cachedName = localStorage.getItem('lk_restaurant_name');
+    if (cachedName) setRestaurantName(cachedName);
+
+    // Fetch toujours pour s'assurer qu'on a le bon nom
+    import('../../lib/api').then(({ getMyConfig }) => {
+      getMyConfig()
+        .then(res => {
+          if (res.restaurant_name) {
+            setRestaurantName(res.restaurant_name);
+            localStorage.setItem('lk_restaurant_name', res.restaurant_name);
+          }
+        })
+        .catch(() => {});
+    });
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -79,8 +99,11 @@ export function AppShell() {
 
       {/* ── Main ── */}
       <div className="main-content">
-        <header className="topbar">
-          <div className="flex items-center gap-2" style={{ marginLeft: 'auto' }}>
+        <header className="topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+          <div className="font-semibold text-sm" style={{ color: 'var(--lk-text-main)' }}>
+            {restaurantName || 'Mon Restaurant'}
+          </div>
+          <div className="flex items-center gap-2">
             <span
               className="badge badge-active"
               style={{ fontSize: '11px' }}
