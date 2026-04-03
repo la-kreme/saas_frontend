@@ -39,7 +39,8 @@ const PLATFORMS = [
 export default function Widget() {
   const [restaurantId, setRestaurantId] = useState(localStorage.getItem('lk_restaurant_id') || '');
   const [restaurantName, setRestaurantName] = useState(localStorage.getItem('lk_restaurant_name') || 'Mon Restaurant');
-  const widgetSrc = `${API_BASE}/widget/${restaurantId}`;
+  const [publicToken, setPublicToken] = useState('');
+  const widgetSrc = publicToken ? `${API_BASE}/widget/${publicToken}` : '';
 
   const [copiedIframe, setCopiedIframe] = useState(false);
   const [copiedWC, setCopiedWC] = useState(false);
@@ -65,6 +66,9 @@ export default function Widget() {
         if (cfg.restaurant_id) {
           setRestaurantId(cfg.restaurant_id);
           localStorage.setItem('lk_restaurant_id', cfg.restaurant_id);
+        }
+        if (cfg.public_token) {
+          setPublicToken(cfg.public_token);
         }
         if (cfg.restaurant_name) {
           setRestaurantName(cfg.restaurant_name);
@@ -352,9 +356,9 @@ export default function Widget() {
             <div className="flex items-center justify-between" style={{ marginBottom: '12px' }}>
               <span className="text-sm font-semibold">Prévisualisation</span>
             </div>
-            {restaurantId ? (
+            {publicToken ? (
               <WidgetPreview
-                restaurantId={restaurantId}
+                restaurantId={publicToken}
                 lang="fr"
                 preview
                 showControls

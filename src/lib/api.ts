@@ -17,6 +17,7 @@ export interface ApiError {
 
 export interface WidgetConfigPublic {
   restaurant_id: string;
+  public_token?: string;
   is_active: boolean;
   restaurant_name: string;
   restaurant_address?: string;
@@ -137,33 +138,33 @@ export async function apiFetchAuth<T = unknown>(
 
 // ─── Endpoints publics widget ─────────────────────────────────────────────────
 
-export const getWidgetConfig = (restaurantId: string, lang = 'fr') =>
-  apiFetch<WidgetConfigPublic>(`/api/v1/widget/${restaurantId}/config?lang=${lang}`);
+export const getWidgetConfig = (publicToken: string, lang = 'fr') =>
+  apiFetch<WidgetConfigPublic>(`/api/v1/widget/${publicToken}/config?lang=${lang}`);
 
-export const getAvailability = (restaurantId: string, month: string, guests: number) =>
+export const getAvailability = (publicToken: string, month: string, guests: number) =>
   apiFetch<{ month: string; guests: number; dates: { date: string; available: boolean }[] }>(
-    `/api/v1/widget/${restaurantId}/availability?month=${month}&guests=${guests}`
+    `/api/v1/widget/${publicToken}/availability?month=${month}&guests=${guests}`
   );
 
-export const getSlots = (restaurantId: string, date: string, guests: number) =>
+export const getSlots = (publicToken: string, date: string, guests: number) =>
   apiFetch<{ date: string; guests: number; slots: SlotItem[] }>(
-    `/api/v1/widget/${restaurantId}/slots?date=${date}&guests=${guests}`
+    `/api/v1/widget/${publicToken}/slots?date=${date}&guests=${guests}`
   );
 
-export const lockSlot = (restaurantId: string, body: {
+export const lockSlot = (publicToken: string, body: {
   date: string; time: string; guests: number; lang?: string;
 }) =>
   apiFetch<{ lock_token: string; expires_at: string; table_id: string }>(
-    `/api/v1/widget/${restaurantId}/reservations/lock`,
+    `/api/v1/widget/${publicToken}/reservations/lock`,
     { method: 'POST', body: JSON.stringify(body) }
   );
 
-export const createReservation = (restaurantId: string, body: object) =>
+export const createReservation = (publicToken: string, body: object) =>
   apiFetch<{
     reservation_id: string; confirmation_code: string; status: string;
     restaurant_name: string; date: string; time: string; guests: number; message: string;
   }>(
-    `/api/v1/widget/${restaurantId}/reservations`,
+    `/api/v1/widget/${publicToken}/reservations`,
     { method: 'POST', body: JSON.stringify(body) }
   );
 
@@ -206,6 +207,13 @@ export const getMyReservations = (params?: { date?: string; status?: string; pag
   apiFetch<{ items: ReservationItem[]; total: number }>(
     `/api/v1/restaurant/me/reservations?${new URLSearchParams(params as Record<string, string> || {}).toString()}`,
     {},
+    true
+  );
+
+export const updateReservationStatus = (id: string, status: 'confirmed' | 'cancelled') =>
+  apiFetch<{ id: string; status: string; message: string }>(
+    `/api/v1/restaurant/me/reservations/${id}`,
+    { method: 'PATCH', body: JSON.stringify({ status }) },
     true
   );
 

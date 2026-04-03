@@ -11,6 +11,7 @@ import { getMyConfig, activateWidget, getWidgetSnippet, updateMyConfig } from '.
 export default function Step5Widget() {
   const navigate = useNavigate();
   const [restaurantId, setRestaurantId] = useState('');
+  const [publicToken, setPublicToken] = useState('');
   const [restaurantName, setRestaurantName] = useState('Mon Restaurant');
   const [iframeSnippet, setIframeSnippet] = useState('');
   const [webComponentSnippet, setWebComponentSnippet] = useState('');
@@ -29,6 +30,7 @@ export default function Step5Widget() {
     getMyConfig().then(cfg => {
       setRestaurantId(cfg.restaurant_id);
       setRestaurantName(cfg.restaurant_name);
+      if (cfg.public_token) setPublicToken(cfg.public_token);
       // Charger les snippets
       return getWidgetSnippet(cfg.restaurant_id);
     }).then(snip => {
@@ -39,7 +41,7 @@ export default function Step5Widget() {
     });
   }, []);
 
-  const widgetSrc = `${apiBase}/widget/${restaurantId}`;
+  const widgetSrc = publicToken ? `${apiBase}/widget/${publicToken}` : '';
 
   const copy = async (text: string, which: 'iframe' | 'wc') => {
     await navigator.clipboard.writeText(text);
@@ -109,10 +111,10 @@ export default function Step5Widget() {
       </div>
 
       {/* Live preview */}
-      {restaurantId ? (
+      {publicToken ? (
         <div style={{ marginBottom: '20px' }}>
           <WidgetPreview
-            restaurantId={restaurantId}
+            restaurantId={publicToken}
             lang="fr"
             preview
             showControls

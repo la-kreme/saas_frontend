@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { CalendarDays, Loader2 } from 'lucide-react';
-import { getMyReservations, type ReservationItem } from '../../lib/api';
+import { CalendarDays, Loader2, Check, X } from 'lucide-react';
+import { getMyReservations, updateReservationStatus, type ReservationItem } from '../../lib/api';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Tous les statuts' },
@@ -15,6 +15,22 @@ export default function Reservations() {
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
   const [filterDate, setFilterDate] = useState('');
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleStatusChange = async (id: string, status: 'confirmed' | 'cancelled') => {
+    if (status === 'cancelled' && !window.confirm('Êtes-vous sûr de vouloir annuler cette réservation ? Le client sera notifié.')) {
+      return;
+    }
+    setActionLoading(id);
+    try {
+      await updateReservationStatus(id, status);
+      setReservations(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+    } catch (err: any) {
+      alert(err.message || 'Erreur lors de la mise à jour.');
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   useEffect(() => {
     const load = async () => {
@@ -88,10 +104,10 @@ export default function Reservations() {
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lk-border)', background: 'var(--lk-surface-2)' }}>
-                {['Code', 'Client', 'Date', 'Heure', 'Pers.', 'Statut'].map(col => (
+                {['Code', 'Client', 'Date', 'Heure', 'Pers.', 'Statut', 'Actions'].map(col => (
                   <th key={col} style={{
                     padding: '10px 16px',
-                    textAlign: 'left',
+                    textAlign: col === 'Actions' ? 'right' : 'left',
                     fontSize: '11px',
                     fontWeight: 600,
                     color: 'var(--lk-text-muted)',
@@ -125,6 +141,43 @@ export default function Reservations() {
                     <span className={`badge badge-${resa.status === 'confirmed' ? 'confirmed' : resa.status === 'pending' ? 'pending' : resa.status === 'no_show' ? 'no-show' : 'cancelled'}`}>
                       {statusLabel(resa.status)}
                     </span>
+                  </td>
+                  <td style={{ padding: '12px 16px', textAlign: 'right' }}>
+                    {actionLoading === resa.id ? (
+                      <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', margin: '0 auto', color: 'var(--lk-text-muted)' }} />
+                    ) : (
+                      <div className="flex items-center gap-2" style={{ justifyContent: 'flex-end' }}>
+                        {resa.status === 'pending' && (
+                          <>
+                            <button
+                              className="btn btn-sm"
+                              style={{ padding: '6px', background: 'var(--lk-surface-2)', border: '1px solid var(--lk-success)', color: 'var(--lk-success)' }}
+                              onClick={() => handleStatusChange(resa.id, 'confirmed')}
+                              title="Confirmer la réservation"
+                            >
+                              <Check size={14} />
+                            </button>
+                            <button
+                              className="btn btn-sm"
+                              style={{ padding: '6px', background: 'var(--lk-surface-2)', border: '1px solid var(--lk-error)', color: 'var(--lk-error)' }}
+                              onClick={() => handleStatusChange(resa.id, 'cancelled')}
+                              title="Refuser et annuler"
+                            >
+                              <X size={14} />
+                            </button>
+                          </>
+                        )}
+                        {resa.status === 'confirmed' && (
+                          <button
+                            className="btn btn-sm"
+                            style={{ padding: '4px 8px', fontSize: '11px', background: 'transparent', color: 'var(--lk-error)' }}
+                            onClick={() => handleStatusChange(resa.id, 'cancelled')}
+                          >
+                            Annuler
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}
