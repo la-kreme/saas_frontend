@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, ExternalLink, Maximize2 } from 'lucide-react';
+import { Copy, Check, ExternalLink, Maximize2, Palette, MessageSquare } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
@@ -37,21 +37,39 @@ const PLATFORMS = [
  * Utilise WidgetPreview avec postMessage, modal fullscreen test, guide plateformes.
  */
 export default function Widget() {
-  const restaurantId = localStorage.getItem('lk_restaurant_id') || '';
-  const restaurantName = localStorage.getItem('lk_restaurant_name') || 'Mon Restaurant';
+  const [restaurantId, setRestaurantId] = useState(localStorage.getItem('lk_restaurant_id') || '');
+  const [restaurantName, setRestaurantName] = useState(localStorage.getItem('lk_restaurant_name') || 'Mon Restaurant');
   const widgetSrc = `${API_BASE}/widget/${restaurantId}`;
 
   const [copiedIframe, setCopiedIframe] = useState(false);
   const [copiedWC, setCopiedWC] = useState(false);
   const [activeTab, setActiveTab] = useState<'iframe' | 'webcomponent'>('iframe');
   const [testModalOpen, setTestModalOpen] = useState(false);
+  
+  // States
   const [showOnDirectory, setShowOnDirectory] = useState(false);
   const [loadingToggle, setLoadingToggle] = useState(false);
+  const [accentColor, setAccentColor] = useState('#ED73A9');
+  const [messageFr, setMessageFr] = useState('');
+  const [messageEn, setMessageEn] = useState('');
+  const [savingStyle, setSavingStyle] = useState(false);
 
   useEffect(() => {
     import('../../lib/api').then(({ getMyConfig }) => {
       getMyConfig().then(cfg => {
         setShowOnDirectory(cfg.show_on_directory ?? false);
+        setAccentColor(cfg.accent_color || '#ED73A9');
+        setMessageFr(cfg.welcome_message_fr || '');
+        setMessageEn(cfg.welcome_message_en || '');
+        
+        if (cfg.restaurant_id) {
+          setRestaurantId(cfg.restaurant_id);
+          localStorage.setItem('lk_restaurant_id', cfg.restaurant_id);
+        }
+        if (cfg.restaurant_name) {
+          setRestaurantName(cfg.restaurant_name);
+          localStorage.setItem('lk_restaurant_name', cfg.restaurant_name);
+        }
       });
     });
   }, []);
@@ -66,6 +84,22 @@ export default function Widget() {
       setShowOnDirectory(!checked);
     } finally {
       setLoadingToggle(false);
+    }
+  };
+
+  const handleSaveStyle = async () => {
+    setSavingStyle(true);
+    try {
+      const { updateMyConfig } = await import('../../lib/api');
+      await updateMyConfig({
+        accent_color: accentColor,
+        welcome_message_fr: messageFr || undefined,
+        welcome_message_en: messageEn || undefined,
+      });
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSavingStyle(false);
     }
   };
 
@@ -168,6 +202,80 @@ export default function Widget() {
             </div>
           </div>
 
+          {/* Personnalisation */}
+          <div className="card" style={{ padding: '20px' }}>
+            <h3 className="section-title" style={{ marginBottom: '16px' }}>
+              Apparence
+            </h3>
+            
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label className="form-label" style={{ fontSize: '13px' }}>
+                <Palette size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                Couleur principale
+              </label>
+              <div className="flex items-center gap-3" style={{ flexWrap: 'wrap', marginTop: '8px' }}>
+                {['#ED73A9', '#7CC0E8', '#C6546D', '#00B4D8', '#FF6B35', '#F59E0B'].map(color => (
+                  <button
+                    key={color}
+                    onClick={() => setAccentColor(color)}
+                    style={{
+                      width: '28px', height: '28px', borderRadius: '50%', background: color,
+                      border: `2px solid ${accentColor === color ? 'white' : 'transparent'}`,
+                      boxShadow: accentColor === color ? `0 0 0 2px ${color}` : 'none',
+                      cursor: 'pointer', transition: 'all 0.2s',
+                    }}
+                    title={color}
+                  />
+                ))}
+                <input
+                  type="color"
+                  value={accentColor}
+                  onChange={e => setAccentColor(e.target.value)}
+                  style={{ width: '28px', height: '28px', border: 'none', borderRadius: '50%', cursor: 'pointer', background: 'none' }}
+                  title="Couleur personnalisée"
+                />
+              </div>
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label className="form-label" style={{ fontSize: '13px' }}>
+                <MessageSquare size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                Message de bienvenue (Français)
+              </label>
+              <textarea
+                className="form-input mt-1"
+                style={{ height: '70px', padding: '8px 12px', resize: 'vertical', fontSize: '13px', width: '100%' }}
+                placeholder="Bienvenue ! Réservez votre table..."
+                maxLength={200}
+                value={messageFr}
+                onChange={e => setMessageFr(e.target.value)}
+              />
+            </div>
+
+            <div className="form-group" style={{ marginBottom: '16px' }}>
+              <label className="form-label" style={{ fontSize: '13px' }}>
+                <MessageSquare size={14} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                Message de bienvenue (Anglais)
+              </label>
+              <textarea
+                className="form-input mt-1"
+                style={{ height: '70px', padding: '8px 12px', resize: 'vertical', fontSize: '13px', width: '100%' }}
+                placeholder="Welcome! Book your table..."
+                maxLength={200}
+                value={messageEn}
+                onChange={e => setMessageEn(e.target.value)}
+              />
+            </div>
+            
+            <button 
+              className="btn btn-primary mt-2" 
+              onClick={handleSaveStyle} 
+              disabled={savingStyle}
+            >
+              {savingStyle ? 'Sauvegarde...' : 'Appliquer l\'apparence'}
+            </button>
+          </div>
+
           {/* Snippets Installation */}
           <div className="flex gap-2">
             {(['iframe', 'webcomponent'] as const).map(tab => (
@@ -251,6 +359,9 @@ export default function Widget() {
                 preview
                 showControls
                 minHeight={500}
+                liveAccentColor={accentColor}
+                liveWelcomeFr={messageFr}
+                liveWelcomeEn={messageEn}
               />
             ) : (
               <div style={{

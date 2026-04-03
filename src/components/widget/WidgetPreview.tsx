@@ -6,6 +6,9 @@ interface WidgetPreviewProps {
   preview?: boolean;
   showControls?: boolean;
   minHeight?: number;
+  liveAccentColor?: string;
+  liveWelcomeFr?: string;
+  liveWelcomeEn?: string;
 }
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
@@ -20,6 +23,9 @@ export function WidgetPreview({
   preview = true,
   showControls = false,
   minHeight = 480,
+  liveAccentColor,
+  liveWelcomeFr,
+  liveWelcomeEn,
 }: WidgetPreviewProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = useState(minHeight);
@@ -40,11 +46,30 @@ export function WidgetPreview({
     return () => window.removeEventListener('message', handler);
   }, [minHeight]);
 
+  const postConfig = () => {
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'lk-preview-config',
+        payload: {
+          accent_color: liveAccentColor,
+          welcome_message_fr: liveWelcomeFr,
+          welcome_message_en: liveWelcomeEn
+        }
+      }, '*');
+    }
+  };
+
+  // Re-sync after language toggle or manual reload
   const reload = () => {
     setKey(k => k + 1);
     setIsLoading(true);
     setHeight(minHeight);
   };
+
+  // Push new config when props change (while iframe is already loaded)
+  useEffect(() => {
+    if (!isLoading) postConfig();
+  }, [liveAccentColor, liveWelcomeFr, liveWelcomeEn, isLoading]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -101,7 +126,10 @@ export function WidgetPreview({
             display: 'block',
             transition: 'height 200ms ease',
           }}
-          onLoad={() => setIsLoading(false)}
+          onLoad={() => {
+            setIsLoading(false);
+            // Let the useEffect catch isLoading transition, or call directly
+          }}
           loading="lazy"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
         />
