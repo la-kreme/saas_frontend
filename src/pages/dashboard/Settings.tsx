@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Mail, Phone, Clock, CalendarDays } from 'lucide-react';
+import { Save, Mail, Phone, Clock, CalendarDays, CheckCircle2 } from 'lucide-react';
 import { getMyConfig, updateMyConfig } from '../../lib/api';
 
 /**
@@ -15,6 +15,7 @@ export default function Settings() {
   const [phone, setPhone] = useState('');
   const [minCancelHours, setMinCancelHours] = useState(2);
   const [advanceBookingDays, setAdvanceBookingDays] = useState(30);
+  const [confirmMode, setConfirmMode] = useState<'auto' | 'manual'>('auto');
 
   // Charger les valeurs actuelles au montage
   useEffect(() => {
@@ -23,6 +24,7 @@ export default function Settings() {
       setPhone(cfg.notification_phone ?? '');
       setMinCancelHours(cfg.min_cancel_hours ?? 2);
       setAdvanceBookingDays(cfg.advance_booking_days ?? 30);
+      setConfirmMode(cfg.confirmation_mode as 'auto' | 'manual' || 'auto');
     }).catch(() => {
       // Silencieux si non connecté (mode dev)
     });
@@ -37,6 +39,7 @@ export default function Settings() {
         notification_phone: phone || undefined,
         min_cancel_hours: minCancelHours,
         advance_booking_days: advanceBookingDays,
+        confirmation_mode: confirmMode,
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -161,6 +164,62 @@ export default function Settings() {
                 <span className="text-xs text-muted">
                   Les clients peuvent réserver jusqu'à {advanceBookingDays} jours à l'avance.
                 </span>
+              </div>
+
+              {/* Mode de confirmation */}
+              <div className="form-group" style={{ marginTop: '8px' }}>
+                <label className="form-label">
+                  <CheckCircle2 size={13} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                  Mode de confirmation
+                </label>
+                <div className="flex-col gap-2 mt-2">
+                  {[
+                    {
+                      value: 'auto' as const,
+                      label: '⚡ Automatique',
+                      desc: 'La réservation est confirmée instantanément. Idéal pour les restaurants très organisés.',
+                    },
+                    {
+                      value: 'manual' as const,
+                      label: '✋ Manuelle (avec modération)',
+                      desc: 'Vous validez manuellement chaque réservation dans votre dashboard. Plus de contrôle.',
+                    },
+                  ].map(opt => (
+                    <button
+                      key={opt.value}
+                      onClick={() => setConfirmMode(opt.value)}
+                      style={{
+                        padding: '14px 16px',
+                        background: confirmMode === opt.value ? 'var(--lk-purple-muted)' : 'var(--lk-surface-2)',
+                        border: `1px solid ${confirmMode === opt.value ? 'rgba(83,52,131,0.4)' : 'var(--lk-border)'}`,
+                        borderRadius: 'var(--radius)',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        transition: 'all var(--transition-fast)',
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: '10px',
+                      }}
+                    >
+                      <CheckCircle2
+                        size={16}
+                        style={{
+                          color: confirmMode === opt.value ? 'var(--lk-purple-light)' : 'var(--lk-text-muted)',
+                          flexShrink: 0,
+                          marginTop: '2px',
+                        }}
+                      />
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: '13px', color: 'var(--lk-text-primary)' }}>
+                          {opt.label}
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'var(--lk-text-secondary)', marginTop: '2px' }}>
+                          {opt.desc}
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
