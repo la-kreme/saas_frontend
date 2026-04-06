@@ -4,8 +4,8 @@
  */
 import { supabase } from './supabase';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
-const WIDGET_BASE = import.meta.env.VITE_WIDGET_BASE_URL || 'http://localhost:8001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8005';
+const WIDGET_BASE = import.meta.env.VITE_WIDGET_BASE_URL || 'http://localhost:8005';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -86,6 +86,7 @@ export interface SnippetResponse {
   iframe_snippet: string;
   webcomponent_snippet: string;
   widget_url: string;
+  reserve_url: string;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

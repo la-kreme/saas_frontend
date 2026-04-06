@@ -11,7 +11,7 @@ interface WidgetPreviewProps {
   liveWelcomeEn?: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8005';
 
 /**
  * WidgetPreview — iframe avec ajustement dynamique de hauteur via postMessage.

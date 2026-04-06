@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, ExternalLink, Maximize2, Palette, MessageSquare } from 'lucide-react';
+import { Copy, Check, ExternalLink, Maximize2, Palette, MessageSquare, Link } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8005';
 
 const PLATFORMS = [
   {
@@ -46,6 +46,8 @@ export default function Widget() {
   const [copiedWC, setCopiedWC] = useState(false);
   const [activeTab, setActiveTab] = useState<'iframe' | 'webcomponent'>('iframe');
   const [testModalOpen, setTestModalOpen] = useState(false);
+  const [reserveUrl, setReserveUrl] = useState('');
+  const [copiedLink, setCopiedLink] = useState(false);
   
   // States
   const [showOnDirectory, setShowOnDirectory] = useState(false);
@@ -73,6 +75,14 @@ export default function Widget() {
         if (cfg.restaurant_name) {
           setRestaurantName(cfg.restaurant_name);
           localStorage.setItem('lk_restaurant_name', cfg.restaurant_name);
+        }
+        // Fetch reserve URL
+        if (cfg.restaurant_id) {
+          import('../../lib/api').then(({ getWidgetSnippet }) => {
+            getWidgetSnippet(cfg.restaurant_id).then(snip => {
+              if (snip.reserve_url) setReserveUrl(snip.reserve_url);
+            }).catch(() => {});
+          });
         }
       });
     });
@@ -205,6 +215,39 @@ export default function Widget() {
               </label>
             </div>
           </div>
+
+          {/* Lien de réservation */}
+          {reserveUrl && (
+            <div className="card" style={{ padding: '20px', border: '1px solid var(--lk-border)' }}>
+              <h3 className="section-title" style={{ marginBottom: '12px' }}>
+                <Link size={16} style={{ display: 'inline', marginRight: '6px', verticalAlign: 'middle' }} />
+                Lien de réservation
+              </h3>
+              <p className="text-xs text-muted" style={{ marginBottom: '12px' }}>
+                Partagez ce lien sur vos réseaux sociaux, votre bio Instagram, Google Maps, etc.
+              </p>
+              <div className="flex items-center gap-2">
+                <input
+                  className="form-input"
+                  value={reserveUrl}
+                  readOnly
+                  onClick={e => (e.target as HTMLInputElement).select()}
+                  style={{ flex: 1, fontSize: '12px', fontFamily: 'monospace', color: 'var(--lk-purple-light)' }}
+                />
+                <button
+                  className="btn btn-primary btn-sm"
+                  onClick={async () => {
+                    await navigator.clipboard.writeText(reserveUrl);
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 2000);
+                  }}
+                  style={{ whiteSpace: 'nowrap' }}
+                >
+                  {copiedLink ? <><Check size={14} /> Copié</> : <><Copy size={14} /> Copier</>}
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Personnalisation */}
           <div className="card" style={{ padding: '20px' }}>

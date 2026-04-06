@@ -16,7 +16,7 @@ export default function Step5Widget() {
   const [iframeSnippet, setIframeSnippet] = useState('');
   const [webComponentSnippet, setWebComponentSnippet] = useState('');
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8001';
+  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8005';
 
   const [copiedIframe, setCopiedIframe] = useState(false);
   const [copiedWC, setCopiedWC] = useState(false);
