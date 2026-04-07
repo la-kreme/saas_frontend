@@ -6,22 +6,27 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
+# Railway passe les Variables comme build args automatiquement.
+# Il faut les déclarer ici pour que Vite les embède au build.
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_API_URL
+ARG VITE_WIDGET_BASE_URL
+
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_WIDGET_BASE_URL=$VITE_WIDGET_BASE_URL
+
 COPY . .
 RUN npm run build
 
 # ─── Stage 2: Serve ───────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS runner
 
-# SPA routing config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-
-# Copier le build statique
 COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Entrypoint: génère env-config.js au démarrage depuis les vars d'env Railway
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
 
 EXPOSE 80
 
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["nginx", "-g", "daemon off;"]
