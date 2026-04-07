@@ -3,9 +3,10 @@
  * Wrapper fetch avec injection automatique JWT Supabase
  */
 import { supabase } from './supabase';
+import { env } from './env';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8005';
-const WIDGET_BASE = import.meta.env.VITE_WIDGET_BASE_URL || 'http://localhost:8005';
+const API_BASE = env.apiUrl;
+const WIDGET_BASE = env.widgetBaseUrl;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

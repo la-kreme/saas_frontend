@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Copy, Check, Zap, ExternalLink } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
 import { getMyConfig, activateWidget, getWidgetSnippet, updateMyConfig } from '../../lib/api';
+import { env } from '../../lib/env';
 
 /**
  * Step 5 — Mon Widget
@@ -16,7 +17,7 @@ export default function Step5Widget() {
   const [iframeSnippet, setIframeSnippet] = useState('');
   const [webComponentSnippet, setWebComponentSnippet] = useState('');
 
-  const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8005';
+  const apiBase = env.apiUrl;
 
   const [copiedIframe, setCopiedIframe] = useState(false);
   const [copiedWC, setCopiedWC] = useState(false);

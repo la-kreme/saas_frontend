@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { env } from '../../lib/env';
 
 interface WidgetPreviewProps {
   restaurantId: string;
@@ -11,7 +12,7 @@ interface WidgetPreviewProps {
   liveWelcomeEn?: string;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8005';
+const API_BASE = env.apiUrl;
 
 /**
  * WidgetPreview — iframe avec ajustement dynamique de hauteur via postMessage.

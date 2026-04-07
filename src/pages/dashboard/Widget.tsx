@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Copy, Check, ExternalLink, Maximize2, Palette, MessageSquare, Link } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
+import { env } from '../../lib/env';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8005';
+const API_BASE = env.apiUrl;
 
 const PLATFORMS = [
   {
