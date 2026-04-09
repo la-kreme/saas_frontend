@@ -9,10 +9,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 
-// We dynamically determine the cookie domain. In local dev without lakreme.fr, we don't set the domain.
+// Cookie domain: .lakreme.app couvre staging.lakreme.app ET lakreme.app
+// NOTE: .lakreme.fr (Angular) et .lakreme.app (SaaS) partagent le même cookie domain
 const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-const cookieDomain = isLocalhost ? undefined : '.lakreme.fr';
-// Secure flag requires HTTPS — localhost uses HTTP, so we must omit it there
+const cookieDomain = isLocalhost ? undefined : '.lakreme.app';
 const secureFlag = isLocalhost ? '' : '; Secure';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
