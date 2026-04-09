@@ -1,17 +1,31 @@
 import { useEffect } from 'react';
 
 /**
- * En production (app.lakreme.fr) : redirige vers lakreme.fr/auth/login
- * Le cookie Supabase est partagé via .lakreme.fr.
+ * Redirige vers le frontend Angular pour le login OAuth.
  *
- * En local (localhost:5173) : redirige vers l'Angular (localhost:4200)
- * Le cookie Supabase est partagé sur le domaine localhost (cross-port).
+ * Mapping des environnements :
+ * - localhost:5173  → localhost:4200 (dev)
+ * - staging.lakreme.app → staging.lakreme.fr (staging)
+ * - lakreme.app → lakreme.fr (prod)
+ *
+ * Le callback Angular passera la session via token-in-URL (hash fragment)
+ * car .lakreme.fr et .lakreme.app sont des TLDs différents — les cookies
+ * ne peuvent pas être partagés directement.
  */
 export default function LoginRedirect() {
   useEffect(() => {
-    const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-    const mainAppUrl = isLocalhost ? 'http://localhost:4200' : 'https://lakreme.fr';
-    
+    const hostname = window.location.hostname;
+
+    let mainAppUrl: string;
+    if (hostname === 'localhost') {
+      mainAppUrl = 'http://localhost:4200';
+    } else if (hostname === 'staging.lakreme.app') {
+      mainAppUrl = 'https://staging.lakreme.fr';
+    } else {
+      // Production: lakreme.app → lakreme.fr
+      mainAppUrl = 'https://lakreme.fr';
+    }
+
     const returnUrl = encodeURIComponent(window.location.origin + '/dashboard');
     window.location.href = `${mainAppUrl}/auth/login?redirect=${returnUrl}`;
   }, []);
