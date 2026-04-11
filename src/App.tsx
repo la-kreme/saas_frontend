@@ -29,21 +29,30 @@ import Settings from './pages/dashboard/Settings';
 function RootRedirect() {
   const { user, loading } = useAuth();
 
-  // Timeout de sécurité : si toujours en chargement après 3s (Supabase mal configuré),
-  // on affiche quand même le contenu plutôt qu'une page blanche
   const [timedOut, setTimedOut] = React.useState(false);
+  const [destination, setDestination] = React.useState<string | null>(null);
+
   React.useEffect(() => {
     const t = setTimeout(() => setTimedOut(true), 3000);
     return () => clearTimeout(t);
   }, []);
 
-  if (loading && !timedOut) {
+  React.useEffect(() => {
+    if (!user || loading) return;
+    // Check if user already has a restaurant linked
+    import('./lib/api').then(({ getMyConfig }) => {
+      getMyConfig()
+        .then(() => setDestination('/dashboard'))
+        .catch(() => setDestination('/onboarding/link'));
+    });
+  }, [user, loading]);
+
+  if ((loading && !timedOut) || (user && !destination)) {
     return (
       <div style={{
         minHeight: '100vh', display: 'flex', alignItems: 'center',
         justifyContent: 'center', flexDirection: 'column', gap: '16px',
       }}>
-
         <div className="spinner" style={{ width: '32px', height: '32px' }} />
         <p style={{ color: 'var(--lk-text-muted)', fontSize: '14px' }}>Chargement…</p>
       </div>
@@ -51,7 +60,7 @@ function RootRedirect() {
   }
 
   if (!user) return <Navigate to="/login" replace />;
-  return <Navigate to="/onboarding/link" replace />;
+  return <Navigate to={destination!} replace />;
 }
 
 export default function App() {
