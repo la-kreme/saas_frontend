@@ -9,19 +9,20 @@ import { getMyReservations, type ReservationItem } from '../../lib/api';
 export default function Today() {
   const [reservations, setReservations] = useState<ReservationItem[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [error, setError] = useState('');
 
   const today = new Date().toISOString().split('T')[0];
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
+      setError('');
       try {
         const data = await getMyReservations({ date: today });
         setReservations(data.items || []);
-      } catch (e: any) {
-        // Sprint 1 : API auth pas encore implémentée (501) → utiliser données mock
-        setReservations(MOCK_RESERVATIONS);
+      } catch {
+        setError('Impossible de charger les réservations.');
+        setReservations([]);
       } finally {
         setLoading(false);
       }
@@ -88,6 +89,10 @@ export default function Today() {
           <h2 style={{ fontSize: '15px', fontWeight: 600 }}>Planning du jour</h2>
         </div>
 
+        {error && (
+          <p className="form-error" style={{ marginBottom: '12px' }}>{error}</p>
+        )}
+
         {loading ? (
           <div className="flex items-center justify-center" style={{ padding: '40px', gap: '12px' }}>
             <Loader2 size={20} style={{ animation: 'spin 0.7s linear infinite', color: 'var(--lk-purple-light)' }} />
@@ -146,30 +151,3 @@ export default function Today() {
   );
 }
 
-// ─── Mock data Sprint 1 ──────────────────────────────────────────────────────
-const MOCK_RESERVATIONS: ReservationItem[] = [
-  {
-    id: '1', confirmation_code: 'LK-1234',
-    guest_first_name: 'Marie', guest_last_name: 'Dupont',
-    guest_email: 'marie@example.com', guest_phone: '+33612345678',
-    party_size: 4, reservation_date: new Date().toISOString().split('T')[0],
-    reservation_time: '10:00', status: 'confirmed',
-    notes: 'Allergie aux noix', created_at: new Date().toISOString(),
-  },
-  {
-    id: '2', confirmation_code: 'LK-5678',
-    guest_first_name: 'Paul', guest_last_name: 'Martin',
-    guest_email: 'paul@example.com', guest_phone: '+33698765432',
-    party_size: 2, reservation_date: new Date().toISOString().split('T')[0],
-    reservation_time: '11:30', status: 'confirmed',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: '3', confirmation_code: 'LK-9012',
-    guest_first_name: 'Sophie', guest_last_name: 'Leroy',
-    guest_email: 'sophie@example.com', guest_phone: '+33677889900',
-    party_size: 6, reservation_date: new Date().toISOString().split('T')[0],
-    reservation_time: '12:00', status: 'pending',
-    notes: 'Anniversaire', created_at: new Date().toISOString(),
-  },
-];

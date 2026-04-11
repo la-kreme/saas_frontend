@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CalendarDays, Loader2, Check, X } from 'lucide-react';
-import { getMyReservations, updateReservationStatus, type ReservationItem } from '../../lib/api';
+import { getMyReservations, updateReservationStatus, getErrorMessage, type ReservationItem } from '../../lib/api';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Tous les statuts' },
@@ -16,17 +16,19 @@ export default function Reservations() {
   const [filterStatus, setFilterStatus] = useState('');
   const [filterDate, setFilterDate] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   const handleStatusChange = async (id: string, status: 'confirmed' | 'cancelled') => {
     if (status === 'cancelled' && !window.confirm('Êtes-vous sûr de vouloir annuler cette réservation ? Le client sera notifié.')) {
       return;
     }
     setActionLoading(id);
+    setError('');
     try {
       await updateReservationStatus(id, status);
       setReservations(prev => prev.map(r => r.id === id ? { ...r, status } : r));
-    } catch (err: any) {
-      alert(err.message || 'Erreur lors de la mise à jour.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Erreur lors de la mise à jour.'));
     } finally {
       setActionLoading(null);
     }
@@ -62,6 +64,7 @@ export default function Reservations() {
           Réservations
         </h1>
         <p className="text-muted text-sm">Historique et gestion de toutes vos réservations.</p>
+        {error && <p className="form-error" style={{ marginTop: '8px' }}>{error}</p>}
       </div>
 
       {/* Filters */}

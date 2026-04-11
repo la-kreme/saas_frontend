@@ -1,6 +1,7 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
+import { getMyConfig } from './lib/api';
 
 
 // Layout
@@ -29,22 +30,19 @@ import Settings from './pages/dashboard/Settings';
 function RootRedirect() {
   const { user, loading } = useAuth();
 
-  const [timedOut, setTimedOut] = React.useState(false);
-  const [destination, setDestination] = React.useState<string | null>(null);
+  const [timedOut, setTimedOut] = useState(false);
+  const [destination, setDestination] = useState<string | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const t = setTimeout(() => setTimedOut(true), 3000);
     return () => clearTimeout(t);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user || loading) return;
-    // Check if user already has a restaurant linked
-    import('./lib/api').then(({ getMyConfig }) => {
-      getMyConfig()
-        .then(() => setDestination('/dashboard'))
-        .catch(() => setDestination('/onboarding/link'));
-    });
+    getMyConfig()
+      .then(() => setDestination('/dashboard'))
+      .catch(() => setDestination('/onboarding/link'));
   }, [user, loading]);
 
   if ((loading && !timedOut) || (user && !destination)) {

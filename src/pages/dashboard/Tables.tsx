@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2, Users, Loader2, Save } from 'lucide-react';
-import { getMyTables, createTable, updateTable, deleteTable } from '../../lib/api';
+import { getMyTables, createTable, updateTable, deleteTable, getErrorMessage } from '../../lib/api';
 
 interface EditableTable {
   id?: string;
@@ -33,8 +33,8 @@ export default function Tables() {
       const mapped = data.map(t => ({ ...t, tempId: t.id }));
       setTables(mapped);
       setOriginalTables(JSON.parse(JSON.stringify(mapped)));
-    } catch (err: any) {
-      setError("Impossible de charger les tables");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Impossible de charger les tables'));
     } finally {
       setLoading(false);
     }
@@ -98,8 +98,8 @@ export default function Tables() {
       setDeletedIds([]);
       await loadTables();
       setSuccess('Modifications enregistrées');
-    } catch (err: any) {
-      setError(err?.message || 'Erreur lors de la sauvegarde');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Erreur lors de la sauvegarde'));
     } finally {
       setSaving(false);
     }

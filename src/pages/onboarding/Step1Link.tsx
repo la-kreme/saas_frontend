@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, CheckCircle2, Loader2, Building, ArrowLeft } from 'lucide-react';
 import { searchBrunchPlaces, createBrunchPlace, type BrunchPlaceSearch, apiFetchAuth } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useDebounce } from '../../hooks/useDebounce';
 
 /**
  * Step 1 — Liaison à la fiche restaurant + Fallback Création
@@ -16,6 +17,7 @@ export default function Step1Link() {
   
   // Search state
   const [query, setQuery] = useState('');
+  const debouncedQuery = useDebounce(query, 300);
   const [results, setResults] = useState<BrunchPlaceSearch[]>([]);
   const [selected, setSelected] = useState<BrunchPlaceSearch | null>(null);
   const [loading, setLoading] = useState(false);
@@ -25,20 +27,22 @@ export default function Step1Link() {
   // Create state
   const [createForm, setCreateForm] = useState({ name: '', address: '', city_name: '', phone: '' });
 
-  const handleSearch = useCallback(async (q: string) => {
-    setQuery(q);
-    setError('');
-    if (q.length < 3) { setResults([]); return; }
+  // Debounced search — only fires when debouncedQuery changes (300ms after last keystroke)
+  useEffect(() => {
+    if (debouncedQuery.length < 3) { setResults([]); return; }
+    if (selected) return; // Don't search if already selected
+
+    let cancelled = false;
     setLoading(true);
-    try {
-      const data = await searchBrunchPlaces(q);
-      setResults(data);
-    } catch {
-      setError('Impossible de rechercher pour le moment. Réessayez.');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    setError('');
+
+    searchBrunchPlaces(debouncedQuery)
+      .then(data => { if (!cancelled) setResults(data); })
+      .catch(() => { if (!cancelled) setError('Impossible de rechercher pour le moment. Réessayez.'); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+
+    return () => { cancelled = true; };
+  }, [debouncedQuery, selected]);
 
   const handleSelect = (place: BrunchPlaceSearch) => {
     setSelected(place);
@@ -61,13 +65,16 @@ export default function Step1Link() {
         }),
       });
       navigate('/onboarding/tables');
-    } catch (err: any) {
-      if (err?.status === 409) {
+    } catch (err: unknown) {
+      const apiErr = err as { status?: number; message?: string };
+      if (apiErr?.status === 409) {
+        // Already linked — advance anyway
         navigate('/onboarding/tables');
       } else {
-        setError(err?.message ?? "Impossible de lier votre fiche. Vérifiez votre connexion.");
-        setLinking(false); // only reset linking if not advancing
+        setError(apiErr?.message ?? "Impossible de lier votre fiche. Vérifiez votre connexion.");
       }
+    } finally {
+      setLinking(false);
     }
   };
 
@@ -85,12 +92,12 @@ export default function Step1Link() {
     setLinking(true);
     setError('');
     try {
-      // 1. Create the place
       const newPlace = await createBrunchPlace(createForm);
-      // 2. Link it
+      // linkPlace handles its own error display and setLinking
       await linkPlace(newPlace);
-    } catch (err: any) {
-      setError(err?.message ?? "Erreur lors de la création.");
+    } catch (err: unknown) {
+      const apiErr = err as { message?: string };
+      setError(apiErr?.message ?? "Erreur lors de la création.");
       setLinking(false);
     }
   };
@@ -127,7 +134,7 @@ export default function Step1Link() {
                 style={{ paddingLeft: '40px' }}
                 placeholder="Ex: Le Café des Amis, Paris..."
                 value={query}
-                onChange={e => handleSearch(e.target.value)}
+                onChange={e => { setQuery(e.target.value); setError(''); }}
                 autoFocus
               />
               {loading && (

@@ -11,6 +11,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { getMyConfig } from '../../lib/api';
 
 const NAV_ITEMS = [
   { to: '/dashboard',              label: "Aujourd'hui",  icon: LayoutDashboard, end: true },
@@ -26,21 +27,17 @@ export function AppShell() {
   const [restaurantName, setRestaurantName] = useState<string>('');
 
   useEffect(() => {
-    // Essayer de récupérer le nom synchronisé
     const cachedName = localStorage.getItem('lk_restaurant_name');
     if (cachedName) setRestaurantName(cachedName);
 
-    // Fetch toujours pour s'assurer qu'on a le bon nom
-    import('../../lib/api').then(({ getMyConfig }) => {
-      getMyConfig()
-        .then(res => {
-          if (res.restaurant_name) {
-            setRestaurantName(res.restaurant_name);
-            localStorage.setItem('lk_restaurant_name', res.restaurant_name);
-          }
-        })
-        .catch(() => {});
-    });
+    getMyConfig()
+      .then(res => {
+        if (res.restaurant_name) {
+          setRestaurantName(res.restaurant_name);
+          localStorage.setItem('lk_restaurant_name', res.restaurant_name);
+        }
+      })
+      .catch(() => { /* silencieux si non connecté */ });
   }, []);
 
   const handleLogout = async () => {

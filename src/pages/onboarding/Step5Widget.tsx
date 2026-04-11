@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Check, Zap, ExternalLink } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
-import { getMyConfig, activateWidget, getWidgetSnippet, updateMyConfig } from '../../lib/api';
+import { getMyConfig, activateWidget, getWidgetSnippet, updateMyConfig, getErrorMessage } from '../../lib/api';
 import { env } from '../../lib/env';
 
 /**
@@ -66,8 +66,8 @@ export default function Step5Widget() {
       await activateWidget();
       setActivated(true);
       setTimeout(() => navigate('/dashboard'), 1500);
-    } catch (err: any) {
-      setError(err?.message ?? 'Erreur lors de l\'activation. Assurez-vous d\'avoir ajouté des tables et des horaires.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, "Erreur lors de l'activation. Assurez-vous d'avoir ajouté des tables et des horaires."));
     } finally {
       setActivating(false);
     }

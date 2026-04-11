@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Palette, MessageSquare, CheckCircle2, Clock, Loader2 } from 'lucide-react';
-import { updateMyConfig } from '../../lib/api';
+import { updateMyConfig, getErrorMessage } from '../../lib/api';
 
 /**
  * Step 4 — Personnalisation (tout optionnel)
@@ -28,8 +28,8 @@ export default function Step4Customize() {
         confirmation_mode: confirmMode,
       });
       navigate('/onboarding/widget');
-    } catch (err: any) {
-      setError(err?.message ?? 'Erreur lors de la sauvegarde.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Erreur lors de la sauvegarde.'));
     } finally {
       setSaving(false);
     }

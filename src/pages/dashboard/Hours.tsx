@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Copy, Plus, Trash2, Loader2, Save } from 'lucide-react';
-import { getMyHours, createHour, updateHour, deleteHour } from '../../lib/api';
+import { getMyHours, createHour, updateHour, deleteHour, getErrorMessage } from '../../lib/api';
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -72,8 +72,8 @@ export default function Hours() {
 
       setDays(newDays);
       setOriginalDays(JSON.parse(JSON.stringify(newDays)));
-    } catch (err: any) {
-      setError("Impossible de charger les horaires");
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Impossible de charger les horaires'));
     } finally {
       setLoading(false);
     }
@@ -204,8 +204,8 @@ export default function Hours() {
       setDeletedIds([]);
       await loadHours();
       setSuccess('Horaires enregistrés avec succès');
-    } catch (err: any) {
-      setError(err?.message || 'Erreur lors de la sauvegarde');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Erreur lors de la sauvegarde'));
     } finally {
       setSaving(false);
     }

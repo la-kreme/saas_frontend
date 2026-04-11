@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Save, Mail, Phone, Clock, CalendarDays, CheckCircle2 } from 'lucide-react';
-import { getMyConfig, updateMyConfig } from '../../lib/api';
+import { getMyConfig, updateMyConfig, getErrorMessage } from '../../lib/api';
 
 /**
  * Dashboard — Paramètres
@@ -43,8 +43,8 @@ export default function Settings() {
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch (err: any) {
-      setError(err?.message ?? 'Erreur lors de la sauvegarde.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Erreur lors de la sauvegarde.'));
     } finally {
       setSaving(false);
     }

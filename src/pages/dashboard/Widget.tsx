@@ -1,9 +1,20 @@
 import { useState, useEffect } from 'react';
 import { Copy, Check, ExternalLink, Maximize2, Palette, MessageSquare, Link } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
+import { getMyConfig, updateMyConfig, getWidgetSnippet } from '../../lib/api';
 import { env } from '../../lib/env';
 
 const API_BASE = env.apiUrl;
+
+/** Échappe les caractères HTML dangereux pour les attributs de snippet. */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
 
 const PLATFORMS = [
   {
@@ -59,41 +70,35 @@ export default function Widget() {
   const [savingStyle, setSavingStyle] = useState(false);
 
   useEffect(() => {
-    import('../../lib/api').then(({ getMyConfig }) => {
-      getMyConfig().then(cfg => {
-        setShowOnDirectory(cfg.show_on_directory ?? false);
-        setAccentColor(cfg.accent_color || '#ED73A9');
-        setMessageFr(cfg.welcome_message_fr || '');
-        setMessageEn(cfg.welcome_message_en || '');
-        
-        if (cfg.restaurant_id) {
-          setRestaurantId(cfg.restaurant_id);
-          localStorage.setItem('lk_restaurant_id', cfg.restaurant_id);
-        }
-        if (cfg.public_token) {
-          setPublicToken(cfg.public_token);
-        }
-        if (cfg.restaurant_name) {
-          setRestaurantName(cfg.restaurant_name);
-          localStorage.setItem('lk_restaurant_name', cfg.restaurant_name);
-        }
-        // Fetch reserve URL
-        if (cfg.restaurant_id) {
-          import('../../lib/api').then(({ getWidgetSnippet }) => {
-            getWidgetSnippet(cfg.restaurant_id).then(snip => {
-              if (snip.reserve_url) setReserveUrl(snip.reserve_url);
-            }).catch(() => {});
-          });
-        }
-      });
-    });
+    getMyConfig().then(cfg => {
+      setShowOnDirectory(cfg.show_on_directory ?? false);
+      setAccentColor(cfg.accent_color || '#ED73A9');
+      setMessageFr(cfg.welcome_message_fr || '');
+      setMessageEn(cfg.welcome_message_en || '');
+
+      if (cfg.restaurant_id) {
+        setRestaurantId(cfg.restaurant_id);
+        localStorage.setItem('lk_restaurant_id', cfg.restaurant_id);
+      }
+      if (cfg.public_token) {
+        setPublicToken(cfg.public_token);
+      }
+      if (cfg.restaurant_name) {
+        setRestaurantName(cfg.restaurant_name);
+        localStorage.setItem('lk_restaurant_name', cfg.restaurant_name);
+      }
+      if (cfg.restaurant_id) {
+        getWidgetSnippet(cfg.restaurant_id)
+          .then(snip => { if (snip.reserve_url) setReserveUrl(snip.reserve_url); })
+          .catch(() => { /* snippet endpoint may not exist yet */ });
+      }
+    }).catch(() => { /* silencieux si non connecté en dev */ });
   }, []);
 
   const handleToggleDirectory = async (checked: boolean) => {
     setLoadingToggle(true);
     setShowOnDirectory(checked);
     try {
-      const { updateMyConfig } = await import('../../lib/api');
       await updateMyConfig({ show_on_directory: checked });
     } catch {
       setShowOnDirectory(!checked);
@@ -105,20 +110,21 @@ export default function Widget() {
   const handleSaveStyle = async () => {
     setSavingStyle(true);
     try {
-      const { updateMyConfig } = await import('../../lib/api');
       await updateMyConfig({
         accent_color: accentColor,
         welcome_message_fr: messageFr || undefined,
         welcome_message_en: messageEn || undefined,
       });
     } catch (err) {
-      console.error(err);
+      console.error('[Widget] style save error:', err);
     } finally {
       setSavingStyle(false);
     }
   };
 
-  const iframeSnippet = `<iframe\n  src="${widgetSrc}"\n  width="100%"\n  height="540"\n  frameborder="0"\n  style="border:none; border-radius:12px;"\n  title="Réserver — ${restaurantName}"\n  loading="lazy"\n></iframe>\n<script>\n  window.addEventListener('message', function(e) {\n    if (e.data && e.data.type === 'lk-resize') {\n      document.querySelector('iframe[src*="${restaurantId}"]').style.height = e.data.height + 'px';\n    }\n  });\n</script>`;
+  const safeName = escapeHtml(restaurantName);
+
+  const iframeSnippet = `<iframe\n  src="${widgetSrc}"\n  width="100%"\n  height="540"\n  frameborder="0"\n  style="border:none; border-radius:12px;"\n  title="Réserver — ${safeName}"\n  loading="lazy"\n></iframe>\n<script>\n  window.addEventListener('message', function(e) {\n    if (e.data && e.data.type === 'lk-resize') {\n      document.querySelector('iframe[src*="${restaurantId}"]').style.height = e.data.height + 'px';\n    }\n  });\n</script>`;
 
   const webComponentSnippet = `<script src="https://cdn.lakreme.fr/widget/v1/lakreme-widget.js" defer></script>\n<lakreme-widget\n  restaurant-id="${restaurantId}"\n  lang="fr"\n></lakreme-widget>`;
 

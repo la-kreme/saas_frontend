@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { env } from '../../lib/env';
 
 interface WidgetPreviewProps {
@@ -14,9 +14,22 @@ interface WidgetPreviewProps {
 
 const API_BASE = env.apiUrl;
 
+/** Compute the origin from an absolute URL for secure postMessage. */
+function getApiOrigin(): string {
+  try {
+    return new URL(API_BASE).origin;
+  } catch {
+    return window.location.origin;
+  }
+}
+
 /**
  * WidgetPreview — iframe avec ajustement dynamique de hauteur via postMessage.
  * Écoute les messages `{ type: 'lk-resize', height: N }` du widget.
+ *
+ * Sécurité :
+ * - Les messages entrants sont filtrés par `e.origin` (seul le domaine API est accepté).
+ * - Les messages sortants utilisent un `targetOrigin` explicite (jamais `*`).
  */
 export function WidgetPreview({
   restaurantId,
@@ -32,35 +45,36 @@ export function WidgetPreview({
   const [height, setHeight] = useState(minHeight);
   const [activeLang, setActiveLang] = useState<'fr' | 'en'>(lang);
   const [isLoading, setIsLoading] = useState(true);
-  const [key, setKey] = useState(0); // force iframe reload
+  const [key, setKey] = useState(0);
 
+  const trustedOrigin = useMemo(() => getApiOrigin(), []);
   const src = `${API_BASE}/widget/${restaurantId}?lang=${activeLang}${preview ? '&preview=true' : ''}`;
 
-  // Écouter les postMessage de hauteur
+  // Écouter les postMessage de hauteur — validation origin
   useEffect(() => {
     const handler = (e: MessageEvent) => {
+      if (e.origin !== trustedOrigin) return;
       if (e.data && e.data.type === 'lk-resize' && typeof e.data.height === 'number') {
         setHeight(Math.max(minHeight, e.data.height));
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [minHeight]);
+  }, [minHeight, trustedOrigin]);
 
   const postConfig = () => {
-    if (iframeRef.current && iframeRef.current.contentWindow) {
+    if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage({
         type: 'lk-preview-config',
         payload: {
           accent_color: liveAccentColor,
           welcome_message_fr: liveWelcomeFr,
-          welcome_message_en: liveWelcomeEn
-        }
-      }, '*');
+          welcome_message_en: liveWelcomeEn,
+        },
+      }, trustedOrigin);
     }
   };
 
-  // Re-sync after language toggle or manual reload
   const reload = () => {
     setKey(k => k + 1);
     setIsLoading(true);
@@ -68,13 +82,11 @@ export function WidgetPreview({
   };
 
   // Push new config when props change (while iframe is already loaded)
-  useEffect(() => {
-    if (!isLoading) postConfig();
-  }, [liveAccentColor, liveWelcomeFr, liveWelcomeEn, isLoading]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { if (!isLoading) postConfig(); }, [liveAccentColor, liveWelcomeFr, liveWelcomeEn, isLoading]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-      {/* Contrôles optionnels */}
       {showControls && (
         <div className="flex items-center gap-2" style={{ justifyContent: 'flex-end' }}>
           <button
@@ -94,7 +106,6 @@ export function WidgetPreview({
         </div>
       )}
 
-      {/* Wrapper frame */}
       <div style={{
         position: 'relative',
         background: '#ffffff',
@@ -104,7 +115,6 @@ export function WidgetPreview({
         minHeight: `${minHeight}px`,
         transition: 'min-height 300ms ease',
       }}>
-        {/* Loading overlay */}
         {isLoading && (
           <div style={{
             position: 'absolute', inset: 0,
@@ -127,16 +137,12 @@ export function WidgetPreview({
             display: 'block',
             transition: 'height 200ms ease',
           }}
-          onLoad={() => {
-            setIsLoading(false);
-            // Let the useEffect catch isLoading transition, or call directly
-          }}
+          onLoad={() => setIsLoading(false)}
           loading="lazy"
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
         />
       </div>
 
-      {/* Note preview */}
       {preview && (
         <p style={{ fontSize: '11px', color: 'var(--lk-text-muted)', textAlign: 'center' }}>
           Mode prévisualisation — les réservations ne sont pas enregistrées

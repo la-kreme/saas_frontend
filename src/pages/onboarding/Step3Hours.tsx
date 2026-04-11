@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Plus, Trash2, Loader2 } from 'lucide-react';
-import { createHour } from '../../lib/api';
+import { createHour, getErrorMessage } from '../../lib/api';
 
 const DAYS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 
@@ -88,8 +88,8 @@ export default function Step3Hours() {
       );
       await Promise.all(hoursToCreate.map(h => createHour(h)));
       navigate('/onboarding/customize');
-    } catch (err: any) {
-      setError(err?.message ?? 'Erreur lors de la sauvegarde des horaires.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Erreur lors de la sauvegarde des horaires.'));
     } finally {
       setSaving(false);
     }

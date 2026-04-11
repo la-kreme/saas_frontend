@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Trash2, Users, Loader2 } from 'lucide-react';
-import { createTable } from '../../lib/api';
+import { createTable, getErrorMessage } from '../../lib/api';
 
 interface LocalTable {
   tempId: string;
@@ -9,10 +9,8 @@ interface LocalTable {
   seats: number;
 }
 
-let tableCounter = 1;
-
-function makeTable(): LocalTable {
-  return { tempId: crypto.randomUUID(), name: `Table ${tableCounter++}`, seats: 2 };
+function makeTable(index: number): LocalTable {
+  return { tempId: crypto.randomUUID(), name: `Table ${index + 1}`, seats: 2 };
 }
 
 /**
@@ -23,13 +21,13 @@ function makeTable(): LocalTable {
  */
 export default function Step2Tables() {
   const navigate = useNavigate();
-  const [tables, setTables] = useState<LocalTable[]>([makeTable()]);
+  const [tables, setTables] = useState<LocalTable[]>([makeTable(0)]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const totalCapacity = tables.reduce((sum, t) => sum + t.seats, 0);
 
-  const addTable = () => setTables(prev => [...prev, makeTable()]);
+  const addTable = () => setTables(prev => [...prev, makeTable(prev.length)]);
   const removeTable = (tempId: string) => setTables(prev => prev.filter(t => t.tempId !== tempId));
 
   const updateSeats = (tempId: string, delta: number) => {
@@ -53,8 +51,8 @@ export default function Step2Tables() {
         )
       );
       navigate('/onboarding/hours');
-    } catch (err: any) {
-      setError(err?.message ?? 'Erreur lors de la sauvegarde des tables.');
+    } catch (err: unknown) {
+      setError(getErrorMessage(err, 'Erreur lors de la sauvegarde des tables.'));
     } finally {
       setSaving(false);
     }

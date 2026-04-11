@@ -4,93 +4,45 @@
  */
 import { supabase } from './supabase';
 import { env } from './env';
+import type {
+  ApiError,
+  WidgetConfigPublic,
+  SlotItem,
+  TableItem,
+  TableCreate,
+  OpeningHoursItem,
+  ReservationItem,
+  SnippetResponse,
+  BrunchPlaceSearch,
+} from './types';
+
+// Re-export all types so existing `import { X } from './api'` still work.
+export type {
+  ApiError,
+  WidgetConfigPublic,
+  SlotItem,
+  TableItem,
+  TableCreate,
+  OpeningHoursItem,
+  ReservationItem,
+  SnippetResponse,
+  BrunchPlaceSearch,
+} from './types';
 
 const API_BASE = env.apiUrl;
 const WIDGET_BASE = env.widgetBaseUrl;
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface ApiError {
-  status: number;
-  message: string;
-  code?: string;
-}
-
-export interface WidgetConfigPublic {
-  restaurant_id: string;
-  public_token?: string;
-  is_active: boolean;
-  restaurant_name: string;
-  restaurant_address?: string;
-  restaurant_phone?: string;
-  advance_booking_days: number;
-  min_cancel_hours: number;
-  welcome_message?: string;       // read-only (lang-resolved)
-  welcome_message_fr?: string;    // write
-  welcome_message_en?: string;    // write
-  accent_color: string;
-  show_branding: boolean;
-  show_on_directory: boolean;
-  confirmation_mode: string;
-  max_party_size: number;
-  // Settings writable fields
-  notification_email?: string;
-  notification_phone?: string;
-}
-
-export interface SlotItem {
-  time: string;
-  service_name: string;
-  duration_min: number;
-  available: boolean;
-  remaining_capacity: number;
-}
-
-export interface TableItem {
-  id: string;
-  name: string;
-  seats: number;
-  is_active: boolean;
-  display_order: number;
-}
-
-export type TableCreate = Pick<TableItem, 'name' | 'seats'> & { display_order?: number };
-
-export interface OpeningHoursItem {
-  id: string;
-  day_of_week: number;
-  service_name: string;
-  open_time: string;
-  close_time: string;
-  slot_duration_min: number;
-  slot_interval_min: number;
-  is_active: boolean;
-}
-
-export interface ReservationItem {
-  id: string;
-  confirmation_code: string;
-  guest_first_name: string;
-  guest_last_name: string;
-  guest_email: string;
-  guest_phone: string;
-  party_size: number;
-  reservation_date: string;
-  reservation_time: string;
-  status: string;
-  notes?: string;
-  occasion?: string;
-  created_at: string;
-}
-
-export interface SnippetResponse {
-  iframe_snippet: string;
-  webcomponent_snippet: string;
-  widget_url: string;
-  reserve_url: string;
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+/** Extract a human-readable message from an unknown catch error. */
+export function getErrorMessage(err: unknown, fallback = 'Une erreur est survenue.'): string {
+  if (err && typeof err === 'object' && 'message' in err) {
+    return (err as ApiError).message || fallback;
+  }
+  return fallback;
+}
+
+
 
 async function getAuthHeaders(): Promise<HeadersInit> {
   const { data: { session } } = await supabase.auth.getSession();
@@ -222,15 +174,6 @@ export const updateReservationStatus = (id: string, status: 'confirmed' | 'cance
 export const getWidgetSnippet = (restaurantId: string) =>
   apiFetchAuth<SnippetResponse>(`/api/v1/restaurant/me/snippet?restaurant_id=${restaurantId}`);
 
-// ─── Recherche brunch_places (Step1Link) ────────────────────────────────────
-
-export interface BrunchPlaceSearch {
-  id: string;
-  name: string;
-  address: string;
-  city_name: string;
-  slug: string;
-}
 
 export const searchBrunchPlaces = (query: string) =>
   apiFetchAuth<BrunchPlaceSearch[]>(
