@@ -14,6 +14,7 @@ export const ROUTES = {
 
   // Dashboard
   DASHBOARD: '/dashboard',
+  DASHBOARD_MY_PAGE: '/dashboard/my-page',
   DASHBOARD_RESERVATIONS: '/dashboard/reservations',
   DASHBOARD_TABLES: '/dashboard/tables',
   DASHBOARD_HOURS: '/dashboard/hours',

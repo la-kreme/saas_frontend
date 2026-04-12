@@ -9,12 +9,23 @@ import {
   Zap,
   LayoutGrid,
   Clock,
+  Globe,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyConfig } from '../../lib/api';
+import { getMyPlace } from '../../lib/backendApi';
 
-const NAV_ITEMS = [
+interface NavItem {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  end?: boolean;
+  requiresLinkedPlace?: boolean;
+}
+
+const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard',              label: "Aujourd'hui",  icon: LayoutDashboard, end: true },
+  { to: '/dashboard/my-page',      label: 'Ma page',      icon: Globe, requiresLinkedPlace: true },
   { to: '/dashboard/reservations', label: 'Réservations', icon: CalendarDays },
   { to: '/dashboard/tables',       label: 'Tables',       icon: LayoutGrid },
   { to: '/dashboard/hours',        label: 'Horaires',     icon: Clock },
@@ -25,20 +36,40 @@ const NAV_ITEMS = [
 export function AppShell() {
   const { user, supabase } = useAuth();
   const [restaurantName, setRestaurantName] = useState<string>('');
+  const [hasLinkedPlace, setHasLinkedPlace] = useState(false);
 
   useEffect(() => {
     const cachedName = localStorage.getItem('lk_restaurant_name');
     if (cachedName) setRestaurantName(cachedName);
 
-    getMyConfig()
-      .then(res => {
-        if (res.restaurant_name) {
-          setRestaurantName(res.restaurant_name);
-          localStorage.setItem('lk_restaurant_name', res.restaurant_name);
+    const initDashboard = async () => {
+      try {
+        // 1. Fetch widget config first
+        const config = await getMyConfig();
+        if (config.restaurant_name) {
+          setRestaurantName(config.restaurant_name);
+          localStorage.setItem('lk_restaurant_name', config.restaurant_name);
         }
-      })
-      .catch(() => { /* silencieux si non connecté */ });
+
+        // 2. Fetch or Sync SaaS Profile
+        try {
+          await getMyPlace();
+          setHasLinkedPlace(true);
+        } catch (error) {
+          setHasLinkedPlace(false);
+        }
+      } catch (err) {
+        /* silencieux si non connecté ou pas de config */
+        setHasLinkedPlace(false);
+      }
+    };
+
+    initDashboard();
   }, []);
+
+  const visibleNav = NAV_ITEMS.filter(
+    item => !item.requiresLinkedPlace || hasLinkedPlace,
+  );
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -57,7 +88,7 @@ export function AppShell() {
         {/* Navigation */}
         <nav className="sidebar-nav">
           <span className="sidebar-section-label">Dashboard</span>
-          {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
+          {visibleNav.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}

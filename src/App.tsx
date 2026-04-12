@@ -21,6 +21,7 @@ import Step5Widget from './pages/onboarding/Step5Widget';
 
 // Dashboard
 import Today from './pages/dashboard/Today';
+import MyPage from './pages/dashboard/MyPage';
 import Reservations from './pages/dashboard/Reservations';
 import Tables from './pages/dashboard/Tables';
 import Hours from './pages/dashboard/Hours';
@@ -87,6 +88,7 @@ export default function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppShell />}>
             <Route path="/dashboard"              element={<Today />} />
+            <Route path="/dashboard/my-page"       element={<MyPage />} />
             <Route path="/dashboard/reservations" element={<Reservations />} />
             <Route path="/dashboard/tables"       element={<Tables />} />
             <Route path="/dashboard/hours"        element={<Hours />} />
