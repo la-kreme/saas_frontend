@@ -29,12 +29,17 @@ const defaultService = (): DayService => ({
 const defaultDays = (): DayConfig[] =>
   DAYS.map(() => ({ enabled: false, services: [defaultService()] }));
 
+interface Step3Props {
+  onNext?: () => void;
+  onBack?: () => void;
+}
+
 /**
  * Step 3 — Mes horaires
  * Toggle par jour + configuration des services (open/close, duration, interval).
  * Sauvegarde via POST /api/v1/restaurant/me/hours pour chaque service actif.
  */
-export default function Step3Hours() {
+export default function Step3Hours({ onNext, onBack }: Step3Props = {}) {
   const navigate = useNavigate();
   const [days, setDays] = useState<DayConfig[]>(defaultDays());
   const [saving, setSaving] = useState(false);
@@ -87,7 +92,8 @@ export default function Step3Hours() {
         d.enabled ? d.services.map(s => ({ day_of_week: dayIdx, ...s })) : []
       );
       await Promise.all(hoursToCreate.map(h => createHour(h)));
-      navigate('/onboarding/customize');
+      if (onNext) onNext();
+      else navigate('/onboarding/customize');
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Erreur lors de la sauvegarde des horaires.'));
     } finally {
@@ -243,7 +249,7 @@ export default function Step3Hours() {
       {error && <p className="form-error" style={{ marginTop: '12px' }}>{error}</p>}
 
       <div className="onboarding-actions">
-        <button className="btn btn-ghost" onClick={() => navigate('/onboarding/tables')}>
+        <button className="btn btn-ghost" onClick={() => onBack ? onBack() : navigate('/onboarding/tables')}>
           ← Retour
         </button>
         <button

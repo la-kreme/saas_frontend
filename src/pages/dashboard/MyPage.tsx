@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Building, FileText, Image, Tags, Loader2, AlertTriangle } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Building, FileText, Image, Tags, Loader2, ShieldCheck, Upload, Clock } from 'lucide-react';
 import { getMyPlace, updateMyPlace } from '../../lib/backendApi';
 import { getErrorMessage } from '../../lib/api';
 import type { BrunchPlaceDetail, BrunchPlaceUpdate } from '../../lib/types';
@@ -7,6 +7,7 @@ import MyPageIdentity from './mypage/MyPageIdentity';
 import MyPageContent from './mypage/MyPageContent';
 import MyPageMedia from './mypage/MyPageMedia';
 import MyPageTags from './mypage/MyPageTags';
+import { LinkRestaurant } from '../../components/widget/LinkRestaurant';
 
 type TabKey = 'identity' | 'content' | 'media' | 'tags';
 
@@ -29,6 +30,9 @@ export default function MyPage() {
   const [saveError, setSaveError] = useState('');
   const [activeTab, setActiveTab] = useState<TabKey>('identity');
 
+  const [uploadingDoc, setUploadingDoc] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -41,6 +45,36 @@ export default function MyPage() {
       setLoading(false);
     }
   }, []);
+
+  const handleDocumentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingDoc(true);
+    setError('');
+    try {
+      // POST to /api/v1/restaurateur/me/claim
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const res = await fetch(`${import.meta.env.VITE_MEILLEURBRUNCH_API_URL || 'http://localhost:8000'}/api/v1/restaurateur/me/claim`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${(await import('../../lib/supabase').then(m => m.supabase.auth.getSession())).data.session?.access_token}`
+        },
+        body: formData
+      });
+
+      if (!res.ok) throw new Error('Erreur lors de la soumission du document');
+      
+      // Update local state to pending
+      setData(prev => prev ? { ...prev, verification_status: 'pending' } : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erreur réseau');
+    } finally {
+      setUploadingDoc(false);
+    }
+  };
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -74,22 +108,15 @@ export default function MyPage() {
 
   if (error || !data) {
     return (
-      <div className="animate-slide-up" style={{ maxWidth: '480px', margin: '0 auto' }}>
-        <div className="card flex-col gap-4" style={{ textAlign: 'center', padding: '40px' }}>
-          <AlertTriangle size={40} style={{ color: 'var(--lk-warning)', margin: '0 auto' }} />
-          <h2 style={{ fontSize: '18px', fontWeight: 600 }}>
-            Fiche introuvable
-          </h2>
-          <p className="text-muted text-sm">
-            {error || "Votre compte n'est pas encore lié à un établissement. Complétez l'onboarding pour commencer."}
-          </p>
-          <button className="btn btn-primary" onClick={fetchData}>
-            Réessayer
-          </button>
+      <div className="animate-slide-up" style={{ maxWidth: '600px', margin: '40px auto' }}>
+        <div className="card flex-col gap-4" style={{ padding: '40px' }}>
+          <LinkRestaurant onLinked={() => window.location.reload()} />
         </div>
       </div>
     );
   }
+
+  const verifyStatus = data.verification_status || 'none';
 
   // ─── Main content ─────────────────────────────────────────────────────────────
 
@@ -158,12 +185,75 @@ export default function MyPage() {
         </div>
       )}
 
-      {/* Tab content */}
-      <div style={{ maxWidth: '680px' }}>
-        {activeTab === 'identity' && <MyPageIdentity data={data} onSave={handleSave} saving={saving} />}
-        {activeTab === 'content' && <MyPageContent data={data} onSave={handleSave} saving={saving} />}
-        {activeTab === 'media' && <MyPageMedia data={data} onSave={handleSave} saving={saving} />}
-        {activeTab === 'tags' && <MyPageTags data={data} onSave={handleSave} saving={saving} />}
+      {/* Tab content with Protection Overlay */}
+      <div style={{ maxWidth: '680px', position: 'relative' }}>
+        {verifyStatus !== 'verified' && (
+          <div style={{
+            position: 'absolute', inset: -16, zIndex: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }}>
+            <div className="card flex-col gap-4 animate-slide-up" style={{
+              textAlign: 'center', padding: '40px', maxWidth: '480px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+              border: verifyStatus === 'pending' ? '1px solid var(--lk-warning)' : '1px solid var(--lk-purple)'
+            }}>
+              {verifyStatus === 'pending' ? (
+                <>
+                  <Clock size={48} style={{ color: 'var(--lk-warning)', margin: '0 auto' }} />
+                  <h2 style={{ fontSize: '20px', fontWeight: 600 }}>Vérification en cours</h2>
+                  <p className="text-muted">
+                    Notre équipe examine actuellement votre document Kbis. 
+                    Ce processus prend généralement 24 à 48 heures ouvrées.<br/><br/>
+                    En attendant, votre page publique La Krème n'est pas modifiable.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck size={48} style={{ color: 'var(--lk-purple)', margin: '0 auto' }} />
+                  <h2 style={{ fontSize: '20px', fontWeight: 600 }}>Revendiquez votre page</h2>
+                  <p className="text-muted text-sm">
+                    Pour modifier la présentation de votre établissement sur l'annuaire La Krème, vous devez vérifier votre identité.
+                    Transmettez un Kbis ou une photo depuis l'intérieur.
+                  </p>
+                  
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    style={{ display: 'none' }} 
+                    accept="image/*,application/pdf"
+                    onChange={handleDocumentUpload}
+                  />
+                  
+                  <button 
+                    className="btn btn-primary" 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingDoc}
+                    style={{ marginTop: '16px', alignSelf: 'center' }}
+                  >
+                    {uploadingDoc ? (
+                      <><Loader2 size={16} className="animate-spin" /> Envoi en cours...</>
+                    ) : (
+                      <><Upload size={16} /> Envoyer le document</>
+                    )}
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div style={{
+          filter: verifyStatus !== 'verified' ? 'grayscale(1) blur(2px)' : 'none',
+          opacity: verifyStatus !== 'verified' ? 0.35 : 1,
+          pointerEvents: verifyStatus !== 'verified' ? 'none' : 'auto',
+          userSelect: verifyStatus !== 'verified' ? 'none' : 'auto',
+          transition: 'all 0.3s ease'
+        }}>
+          {activeTab === 'identity' && <MyPageIdentity data={data} onSave={handleSave} saving={saving} />}
+          {activeTab === 'content' && <MyPageContent data={data} onSave={handleSave} saving={saving} />}
+          {activeTab === 'media' && <MyPageMedia data={data} onSave={handleSave} saving={saving} />}
+          {activeTab === 'tags' && <MyPageTags data={data} onSave={handleSave} saving={saving} />}
+        </div>
       </div>
     </div>
   );

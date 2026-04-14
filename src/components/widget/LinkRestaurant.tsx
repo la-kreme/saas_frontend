@@ -1,19 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Search, MapPin, CheckCircle2, Loader2, Building, ArrowLeft } from 'lucide-react';
-import { searchBrunchPlaces, createBrunchPlace, type BrunchPlaceSearch, apiFetchAuth } from '../../lib/api';
+import { useSearchParams } from 'react-router-dom';
+import { Search, MapPin, CheckCircle2, Loader2 } from 'lucide-react';
+import { searchBrunchPlaces, type BrunchPlaceSearch, apiFetchAuth } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 
-/**
- * Step 1 — Liaison à la fiche restaurant + Fallback Création
- * Le restaurateur recherche sa fiche ou la crée si elle n'existe pas.
- */
-export default function Step1Link() {
-  const navigate = useNavigate();
+interface LinkRestaurantProps {
+  onLinked: () => void;
+  hideHeader?: boolean;
+}
+
+export function LinkRestaurant({ onLinked, hideHeader }: LinkRestaurantProps) {
   const { user } = useAuth();
-  
-  const [mode, setMode] = useState<'search' | 'create'>('search');
   
   // Search state
   const [query, setQuery] = useState('');
@@ -24,9 +22,6 @@ export default function Step1Link() {
   const [linking, setLinking] = useState(false);
   const [error, setError] = useState('');
 
-  // Create state
-  const [createForm, setCreateForm] = useState({ name: '', address: '', city_name: '', phone: '' });
-
   const [searchParams] = useSearchParams();
 
   // Read intent payload from URL
@@ -36,7 +31,6 @@ export default function Step1Link() {
     const brunchName = searchParams.get('brunch_name');
 
     if (intent === 'claim' && brunchId && brunchName) {
-      // Pre-fill the search with the known entity
       const selectedPlace: BrunchPlaceSearch = {
         id: brunchId,
         name: brunchName,
@@ -49,10 +43,9 @@ export default function Step1Link() {
     }
   }, [searchParams]);
 
-  // Debounced search — only fires when debouncedQuery changes (300ms after last keystroke)
   useEffect(() => {
     if (debouncedQuery.length < 3) { setResults([]); return; }
-    if (selected) return; // Don't search if already selected
+    if (selected) return;
 
     let cancelled = false;
     setLoading(true);
@@ -86,12 +79,11 @@ export default function Step1Link() {
           notification_email: user?.email ?? '',
         }),
       });
-      navigate('/dashboard');
+      onLinked();
     } catch (err: unknown) {
       const apiErr = err as { status?: number; message?: string };
       if (apiErr?.status === 409) {
-        // Already linked — advance anyway
-        navigate('/dashboard');
+        onLinked();
       } else {
         setError(apiErr?.message ?? "Impossible de lier votre fiche. Vérifiez votre connexion.");
       }
@@ -105,42 +97,20 @@ export default function Step1Link() {
     linkPlace(selected);
   };
 
-  const handleConfirmCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!createForm.name || !createForm.city_name) {
-      setError("Le nom et la ville sont obligatoires.");
-      return;
-    }
-    setLinking(true);
-    setError('');
-    try {
-      const newPlace = await createBrunchPlace(createForm);
-      // linkPlace handles its own error display and setLinking
-      await linkPlace(newPlace);
-    } catch (err: unknown) {
-      const apiErr = err as { message?: string };
-      setError(apiErr?.message ?? "Erreur lors de la création.");
-      setLinking(false);
-    }
-  };
-
   return (
-    <>
-      <div className="onboarding-step-header">
-        <div className="onboarding-step-number">Étape 1 sur 5</div>
-        <h1 className="onboarding-step-title">Ma fiche restaurant</h1>
-        <p className="onboarding-step-desc">
-          {mode === 'search' 
-            ? "Recherchez votre établissement sur La Krème pour lier votre compte. C'est votre identifiant unique sur toute la plateforme."
-            : "Saisissez les informations de votre établissement pour créer sa fiche sur La Krème."}
-        </p>
-      </div>
+    <div style={{ width: '100%', maxWidth: '560px', margin: '0 auto' }}>
+      {!hideHeader && (
+        <div className="onboarding-step-header" style={{ textAlign: 'left' }}>
+          <h1 className="onboarding-step-title" style={{ fontSize: '20px' }}>Associer votre restaurant</h1>
+          <p className="onboarding-step-desc">
+            Recherchez votre établissement sur La Krème pour lier votre compte. C'est votre identifiant unique sur toute la plateforme.
+          </p>
+        </div>
+      )}
 
-      {mode === 'search' && (
-        <div className="animate-fade-in">
-          {/* Search input */}
+      <div className="animate-fade-in" style={{ textAlign: 'left' }}>
           <div className="form-group">
-            <label className="form-label">Nom de votre restaurant</label>
+            <label className="form-label" style={{ textAlign: 'left', display: 'block' }}>Nom de votre restaurant</label>
             <div style={{ position: 'relative' }}>
               <Search
                 size={16}
@@ -174,7 +144,6 @@ export default function Step1Link() {
             {error && <p className="form-error">{error}</p>}
           </div>
 
-          {/* Results dropdown */}
           {results.length > 0 && (
             <div style={{
               marginTop: '8px',
@@ -217,7 +186,6 @@ export default function Step1Link() {
             </div>
           )}
 
-          {/* Selected confirmation */}
           {selected && (
             <div style={{
               marginTop: '16px',
@@ -254,98 +222,23 @@ export default function Step1Link() {
             <div style={{ textAlign: 'center', marginTop: '32px' }}>
               <p style={{ color: 'var(--lk-text-muted)', fontSize: '14px', marginBottom: '12px' }}>
                 Vous ne trouvez pas votre établissement ?
+                Veuillez contacter le support pour l'ajouter à l'annuaire.
               </p>
-              <button
-                className="btn"
-                style={{ background: 'var(--lk-surface-2)', border: '1px solid var(--lk-border)' }}
-                onClick={() => { setMode('create'); setCreateForm(f => ({...f, name: query })); setError(''); }}
-              >
-                <Building size={16} /> Créer mon établissement
-              </button>
             </div>
           )}
 
-          {/* Actions */}
-          <div className="onboarding-actions">
+          <div style={{ marginTop: '24px' }}>
             <button
               id="btn-step1-next"
               className="btn btn-primary btn-lg"
+              style={{ width: '100%' }}
               disabled={!selected || linking}
               onClick={handleConfirmSearch}
             >
-              {linking ? <><div className="spinner" style={{ width: '16px', height: '16px' }} /> Liaison...</> : 'Continuer →'}
+              {linking ? <><div className="spinner" style={{ width: '16px', height: '16px' }} /> Liaison...</> : 'Associer cet établissement'}
             </button>
           </div>
         </div>
-      )}
-
-      {mode === 'create' && (
-        <form onSubmit={handleConfirmCreate} className="animate-fade-in">
-          <button 
-            type="button"
-            className="btn"
-            style={{ padding: '6px 12px', marginBottom: '24px', background: 'transparent', border: '1px solid var(--lk-border)' }}
-            onClick={() => { setMode('search'); setError(''); }}
-          >
-            <ArrowLeft size={16} /> Retour à la recherche
-          </button>
-
-          {error && <div className="form-error" style={{ marginBottom: '16px' }}>{error}</div>}
-
-          <div className="form-group">
-            <label className="form-label">Nom de l'établissement *</label>
-            <input 
-              required
-              className="form-input" 
-              value={createForm.name} 
-              onChange={e => setCreateForm({...createForm, name: e.target.value})} 
-              placeholder="Le Café des Amis"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Ville *</label>
-            <input 
-              required
-              className="form-input" 
-              value={createForm.city_name} 
-              onChange={e => setCreateForm({...createForm, city_name: e.target.value})} 
-              placeholder="Paris"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Adresse postale</label>
-            <input 
-              className="form-input" 
-              value={createForm.address} 
-              onChange={e => setCreateForm({...createForm, address: e.target.value})} 
-              placeholder="12 rue de la Paix"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Numéro de téléphone</label>
-            <input 
-              type="tel"
-              className="form-input" 
-              value={createForm.phone} 
-              onChange={e => setCreateForm({...createForm, phone: e.target.value})} 
-              placeholder="01 23 45 67 89"
-            />
-          </div>
-
-          <div className="onboarding-actions">
-            <button
-              type="submit"
-              className="btn btn-primary btn-lg"
-              disabled={linking || !createForm.name || !createForm.city_name}
-            >
-              {linking ? <><div className="spinner" style={{ width: '16px', height: '16px' }} /> Création...</> : 'Créer et Continuer →'}
-            </button>
-          </div>
-        </form>
-      )}
-    </>
+    </div>
   );
 }

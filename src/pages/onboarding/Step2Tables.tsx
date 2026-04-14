@@ -13,13 +13,12 @@ function makeTable(index: number): LocalTable {
   return { tempId: crypto.randomUUID(), name: `Table ${index + 1}`, seats: 2 };
 }
 
-/**
- * Step 2 — Mes tables
- * Ajout/suppression de tables avec stepper pour les couverts.
- * Validation : ≥1 table avec seats > 0.
- * Sauvegarde en API : POST /api/v1/restaurant/me/tables pour chaque table.
- */
-export default function Step2Tables() {
+interface Step2Props {
+  onNext?: () => void;
+  hideBack?: boolean;
+}
+
+export default function Step2Tables({ onNext, hideBack }: Step2Props = {}) {
   const navigate = useNavigate();
   const [tables, setTables] = useState<LocalTable[]>([makeTable(0)]);
   const [saving, setSaving] = useState(false);
@@ -50,7 +49,8 @@ export default function Step2Tables() {
           createTable({ name: t.name, seats: t.seats, display_order: i })
         )
       );
-      navigate('/onboarding/hours');
+      if (onNext) onNext();
+      else navigate('/onboarding/hours');
     } catch (err: unknown) {
       setError(getErrorMessage(err, 'Erreur lors de la sauvegarde des tables.'));
     } finally {
@@ -147,9 +147,11 @@ export default function Step2Tables() {
       {error && <p className="form-error" style={{ marginTop: '12px' }}>{error}</p>}
 
       <div className="onboarding-actions">
-        <button className="btn btn-ghost" onClick={() => navigate('/onboarding/link')}>
-          ← Retour
-        </button>
+        {!hideBack && (
+          <button className="btn btn-ghost" onClick={() => navigate('/onboarding/link')}>
+            ← Retour
+          </button>
+        )}
         <button
           id="btn-step2-next"
           className="btn btn-primary btn-lg"

@@ -10,10 +10,12 @@ import {
   LayoutGrid,
   Clock,
   Globe,
+  Lock,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyConfig } from '../../lib/api';
 import { getMyPlace } from '../../lib/backendApi';
+import { SetupWizard } from './SetupWizard';
 
 interface NavItem {
   to: string;
@@ -24,19 +26,20 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard',              label: "Aujourd'hui",  icon: LayoutDashboard, end: true },
-  { to: '/dashboard/my-page',      label: 'Ma page',      icon: Globe, requiresLinkedPlace: true },
+  { to: '/dashboard', label: "Aujourd'hui", icon: LayoutDashboard, end: true },
   { to: '/dashboard/reservations', label: 'Réservations', icon: CalendarDays },
-  { to: '/dashboard/tables',       label: 'Tables',       icon: LayoutGrid },
-  { to: '/dashboard/hours',        label: 'Horaires',     icon: Clock },
-  { to: '/dashboard/widget',       label: 'Mon Widget',   icon: Code2 },
-  { to: '/dashboard/settings',     label: 'Paramètres',   icon: Settings },
+  { to: '/dashboard/tables', label: 'Tables', icon: LayoutGrid },
+  { to: '/dashboard/hours', label: 'Horaires', icon: Clock },
+  { to: '/dashboard/widget', label: 'Mon Widget', icon: Code2 },
+  { to: '/dashboard/my-page', label: 'Ma page LK', icon: Globe, requiresLinkedPlace: true },
+  { to: '/dashboard/settings', label: 'Paramètres', icon: Settings },
 ];
 
 export function AppShell() {
   const { user, supabase } = useAuth();
   const [restaurantName, setRestaurantName] = useState<string>('');
   const [hasLinkedPlace, setHasLinkedPlace] = useState(false);
+  const [hasCompletedWizard, setHasCompletedWizard] = useState(true);
 
   useEffect(() => {
     const cachedName = localStorage.getItem('lk_restaurant_name');
@@ -49,6 +52,9 @@ export function AppShell() {
         if (config.restaurant_name) {
           setRestaurantName(config.restaurant_name);
           localStorage.setItem('lk_restaurant_name', config.restaurant_name);
+        }
+        if (!config.is_active) {
+          setHasCompletedWizard(false);
         }
 
         // 2. Fetch or Sync SaaS Profile
@@ -67,10 +73,6 @@ export function AppShell() {
     initDashboard();
   }, []);
 
-  const visibleNav = NAV_ITEMS.filter(
-    item => !item.requiresLinkedPlace || hasLinkedPlace,
-  );
-
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = 'https://lakreme.fr';
@@ -88,17 +90,26 @@ export function AppShell() {
         {/* Navigation */}
         <nav className="sidebar-nav">
           <span className="sidebar-section-label">Dashboard</span>
-          {visibleNav.map(({ to, label, icon: Icon, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-            >
-              <Icon size={16} />
-              {label}
-            </NavLink>
-          ))}
+          {NAV_ITEMS.map(({ to, label, icon: Icon, end, requiresLinkedPlace }) => {
+            const isLocked = requiresLinkedPlace && !hasLinkedPlace;
+            
+            return (
+              <NavLink
+                key={to}
+                to={to}
+                end={end}
+                className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                style={{
+                  opacity: isLocked ? 0.6 : 1,
+                  filter: isLocked ? 'grayscale(1)' : 'none',
+                }}
+              >
+                <Icon size={16} />
+                <span style={{ flex: 1 }}>{label}</span>
+                {isLocked && <Lock size={12} style={{ opacity: 0.7 }} />}
+              </NavLink>
+            );
+          })}
 
           {/* Spacer + Logout */}
           <div className="mt-auto" style={{ paddingTop: '32px' }}>
@@ -141,9 +152,14 @@ export function AppShell() {
             </span>
           </div>
         </header>
+        {/* ── Main Content ── */}
         <main className="page-content">
           <Outlet />
         </main>
+
+        {!hasCompletedWizard && hasLinkedPlace && (
+          <SetupWizard onComplete={() => setHasCompletedWizard(true)} />
+        )}
       </div>
     </div>
   );

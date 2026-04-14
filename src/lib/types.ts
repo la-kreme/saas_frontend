@@ -196,6 +196,10 @@ export interface BrunchPlaceDetail {
   // Taxonomie v2 — overflow
   food_tags_overflow: string[];
 
+  // SaaS Identity
+  verification_status?: string;
+  verification_document_url?: string;
+
   // Timestamps
   updated_at: string;
 }
