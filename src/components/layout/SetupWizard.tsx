@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Step2Tables from '../../pages/onboarding/Step2Tables';
 import Step3Hours from '../../pages/onboarding/Step3Hours';
-import { getMyConfig, updateMyConfig, activateWidget, getErrorMessage } from '../../lib/api';
+import { updateMyConfig, activateWidget, getErrorMessage } from '../../lib/api';
 import { Zap, Loader2 } from 'lucide-react';
 
 interface SetupWizardProps {
