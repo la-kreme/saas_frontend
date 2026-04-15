@@ -127,7 +127,6 @@ export default function Step1Link() {
   return (
     <>
       <div className="onboarding-step-header">
-        <div className="onboarding-step-number">Étape 1 sur 5</div>
         <h1 className="onboarding-step-title">Ma fiche restaurant</h1>
         <p className="onboarding-step-desc">
           {mode === 'search' 

@@ -19,35 +19,37 @@ export function OnboardingLayout() {
         <img src="/logo.png" alt="La Krème" style={{ height: '48px', width: 'auto' }} />
       </div>
 
-      {/* Step Progress */}
-      <div style={{ width: '100%', maxWidth: '560px', marginBottom: '32px' }}>
-        <div className="step-progress">
-          {STEPS.map((_, idx) => (
-            <div key={idx} className="step-item">
-              <div className={`step-circle ${
-                idx < currentStep ? 'completed' :
-                idx === currentStep ? 'active' : ''
-              }`}>
-                {idx < currentStep ? '✓' : idx + 1}
+      {/* Step Progress (Hidden on step 1 since it can be skipped) */}
+      {currentStep > 0 && (
+        <div style={{ width: '100%', maxWidth: '560px', marginBottom: '32px' }} className="animate-fade-in">
+          <div className="step-progress">
+            {STEPS.map((_, idx) => (
+              <div key={idx} className="step-item">
+                <div className={`step-circle ${
+                  idx < currentStep ? 'completed' :
+                  idx === currentStep ? 'active' : ''
+                }`}>
+                  {idx < currentStep ? '✓' : idx + 1}
+                </div>
+                {idx < STEPS.length - 1 && (
+                  <div className={`step-connector ${idx < currentStep ? 'completed' : ''}`} />
+                )}
               </div>
-              {idx < STEPS.length - 1 && (
-                <div className={`step-connector ${idx < currentStep ? 'completed' : ''}`} />
-              )}
-            </div>
-          ))}
+            ))}
+          </div>
+          <div className="flex" style={{ justifyContent: 'space-between', marginTop: '8px' }}>
+            {STEPS.map((step, idx) => (
+              <span key={idx} className="text-xs text-muted" style={{
+                flex: 1,
+                textAlign: idx === 0 ? 'left' : idx === STEPS.length - 1 ? 'right' : 'center',
+                color: idx === currentStep ? 'var(--lk-purple-light)' : undefined,
+              }}>
+                {step.label}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="flex" style={{ justifyContent: 'space-between', marginTop: '8px' }}>
-          {STEPS.map((step, idx) => (
-            <span key={idx} className="text-xs text-muted" style={{
-              flex: 1,
-              textAlign: idx === 0 ? 'left' : idx === STEPS.length - 1 ? 'right' : 'center',
-              color: idx === currentStep ? 'var(--lk-purple-light)' : undefined,
-            }}>
-              {step.label}
-            </span>
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Step Content */}
       <div className="onboarding-card animate-slide-up">

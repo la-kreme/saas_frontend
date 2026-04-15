@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Building, FileText, Image, Tags, Loader2, ShieldCheck, Upload, Clock, X } from 'lucide-react';
-
-
 import { getMyPlace, updateMyPlace } from '../../lib/backendApi';
 import { getErrorMessage } from '../../lib/api';
 import type { BrunchPlaceDetail, BrunchPlaceUpdate } from '../../lib/types';
