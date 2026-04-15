@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { CalendarDays, Loader2, Check, X } from 'lucide-react';
-import { getMyReservations, updateReservationStatus, getErrorMessage, type ReservationItem } from '../../lib/api';
+import { createPortal } from 'react-dom';
+import { CalendarDays, Loader2, Check, X, Plus } from 'lucide-react';
+import { getMyReservations, updateReservationStatus, createAdminReservation, getErrorMessage, type ReservationItem } from '../../lib/api';
 
 const STATUS_OPTIONS = [
   { value: '', label: 'Tous les statuts' },
@@ -17,6 +18,54 @@ export default function Reservations() {
   const [filterDate, setFilterDate] = useState('');
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [error, setError] = useState('');
+
+  // Creation State
+  const [modalOpen, setModalOpen] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createError, setCreateError] = useState('');
+  const [newResa, setNewResa] = useState({
+    date: '', time: '', guests: 2, lastName: '', email: '', phone: '', notes: ''
+  });
+
+  const loadReservations = async () => {
+    setLoading(true);
+    try {
+      const data = await getMyReservations({
+        status: filterStatus || undefined,
+        date: filterDate || undefined,
+      });
+      setReservations(data.items || []);
+    } catch {
+      setReservations([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setCreateError('');
+    setCreateLoading(true);
+    try {
+      await createAdminReservation({
+        reservation_date: newResa.date,
+        reservation_time: newResa.time,
+        guests: newResa.guests,
+        guest_first_name: '',
+        guest_last_name: newResa.lastName,
+        guest_email: newResa.email || undefined,
+        guest_phone: newResa.phone || undefined,
+        notes: newResa.notes || undefined,
+      });
+      setModalOpen(false);
+      setNewResa({ date: '', time: '', guests: 2, lastName: '', email: '', phone: '', notes: '' });
+      await loadReservations();
+    } catch (err: unknown) {
+      setCreateError(getErrorMessage(err, 'Impossible de créer la réservation. Vérifiez vos tables actives.'));
+    } finally {
+      setCreateLoading(false);
+    }
+  };
 
   const handleStatusChange = async (id: string, status: 'confirmed' | 'cancelled') => {
     if (status === 'cancelled' && !window.confirm('Êtes-vous sûr de vouloir annuler cette réservation ? Le client sera notifié.')) {
@@ -35,21 +84,7 @@ export default function Reservations() {
   };
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const data = await getMyReservations({
-          status: filterStatus || undefined,
-          date: filterDate || undefined,
-        });
-        setReservations(data.items || []);
-      } catch {
-        setReservations([]); // Sprint 4 : API auth requise
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    loadReservations();
   }, [filterStatus, filterDate]);
 
   const statusLabel = (s: string) => ({
@@ -68,27 +103,36 @@ export default function Reservations() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-3" style={{ marginBottom: '20px', flexWrap: 'wrap' }}>
-        <div style={{ position: 'relative' }}>
-          <CalendarDays size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--lk-text-muted)' }} />
-          <input
-            type="date"
+      <div className="flex items-center" style={{ marginBottom: '20px', flexWrap: 'wrap', justifyContent: 'space-between', gap: '12px' }}>
+        <div className="flex items-center gap-3">
+          <div style={{ position: 'relative' }}>
+            <CalendarDays size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--lk-text-muted)' }} />
+            <input
+              type="date"
+              className="form-input"
+              style={{ paddingLeft: '36px', height: '36px', fontSize: '13px', width: '180px' }}
+              value={filterDate}
+              onChange={e => setFilterDate(e.target.value)}
+            />
+          </div>
+          <select
             className="form-input"
-            style={{ paddingLeft: '36px', height: '36px', fontSize: '13px', width: '180px' }}
-            value={filterDate}
-            onChange={e => setFilterDate(e.target.value)}
-          />
+            style={{ height: '36px', fontSize: '13px', width: '160px' }}
+            value={filterStatus}
+            onChange={e => setFilterStatus(e.target.value)}
+          >
+            {STATUS_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
         </div>
-        <select
-          className="form-input"
-          style={{ height: '36px', fontSize: '13px', width: '160px' }}
-          value={filterStatus}
-          onChange={e => setFilterStatus(e.target.value)}
+        <button 
+          className="btn btn-primary flex items-center gap-2" 
+          onClick={() => setModalOpen(true)}
         >
-          {STATUS_OPTIONS.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
-          ))}
-        </select>
+          <Plus size={16} />
+          Nouvelle réservation
+        </button>
       </div>
 
       {/* Table */}
@@ -188,6 +232,72 @@ export default function Reservations() {
           </table>
         )}
       </div>
+
+      {/* Creation Modal */}
+      {modalOpen && createPortal(
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(0,0,0,0.5)', zIndex: 9999,
+          display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div className="card" style={{ width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="flex items-center" style={{ justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h2 style={{ fontSize: '18px', fontWeight: 600 }}>Ajouter une réservation</h2>
+              <button onClick={() => setModalOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--lk-text-muted)' }}>
+                <X size={20} />
+              </button>
+            </div>
+            
+            {createError && <p className="form-error" style={{ marginBottom: '16px' }}>{createError}</p>}
+            
+            <form onSubmit={handleCreate}>
+              <div className="form-group">
+                <label className="form-label">Date</label>
+                <input type="date" required className="form-input" value={newResa.date} onChange={e => setNewResa({...newResa, date: e.target.value})} />
+              </div>
+              <div className="flex gap-3" style={{ marginBottom: '16px' }}>
+                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                  <label className="form-label">Heure (HH:MM)</label>
+                  <input type="time" required className="form-input" value={newResa.time} onChange={e => setNewResa({...newResa, time: e.target.value})} />
+                </div>
+                <div className="form-group" style={{ flex: 1, marginBottom: 0 }}>
+                  <label className="form-label">Couverts</label>
+                  <input type="number" required min="1" max="50" className="form-input" value={newResa.guests} onChange={e => setNewResa({...newResa, guests: parseInt(e.target.value) || 2})} />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '16px' }}>
+                <label className="form-label">Nom du client</label>
+                <input type="text" required className="form-input" placeholder="ex: Dupont" value={newResa.lastName} onChange={e => setNewResa({...newResa, lastName: e.target.value})} />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Email (Optionnel)</label>
+                <input type="email" className="form-input" placeholder="Si renseigné, un email de confirmation sera envoyé" value={newResa.email} onChange={e => setNewResa({...newResa, email: e.target.value})} />
+              </div>
+              
+              <div className="form-group">
+                <label className="form-label">Téléphone (Optionnel)</label>
+                <input type="tel" className="form-input" placeholder="ex: 06 12..." value={newResa.phone} onChange={e => setNewResa({...newResa, phone: e.target.value})} />
+              </div>
+
+              <div className="form-group" style={{ marginBottom: '24px' }}>
+                <label className="form-label">Notes (Optionnel)</label>
+                <textarea className="form-input" rows={2} placeholder="Allergies, chaise bébé..." value={newResa.notes} onChange={e => setNewResa({...newResa, notes: e.target.value})} />
+              </div>
+
+              <div className="flex gap-3" style={{ justifyContent: 'flex-end' }}>
+                <button type="button" className="btn" onClick={() => setModalOpen(false)} disabled={createLoading}>
+                  Annuler
+                </button>
+                <button type="submit" className="btn btn-primary flex items-center gap-2" disabled={createLoading}>
+                  {createLoading ? <Loader2 size={16} className="animate-spin" /> : <><Check size={16} /> Créer</>}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>, document.body
+      )}
     </div>
   );
 }

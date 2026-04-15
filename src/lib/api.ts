@@ -164,6 +164,22 @@ export const getMyReservations = (params?: { date?: string; status?: string; pag
     true
   );
 
+export const createAdminReservation = (body: {
+  reservation_date: string;
+  reservation_time: string;
+  guests: number;
+  guest_first_name: string;
+  guest_last_name: string;
+  guest_email?: string;
+  guest_phone?: string;
+  notes?: string;
+}) =>
+  apiFetch<{ id: string; status: string; message: string }>(
+    `/api/v1/restaurant/me/reservations`,
+    { method: 'POST', body: JSON.stringify(body) },
+    true
+  );
+
 export const updateReservationStatus = (id: string, status: 'confirmed' | 'cancelled') =>
   apiFetch<{ id: string; status: string; message: string }>(
     `/api/v1/restaurant/me/reservations/${id}`,
