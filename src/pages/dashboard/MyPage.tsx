@@ -1,5 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Building, FileText, Image, Tags, Loader2, ShieldCheck, Upload, Clock } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Building, FileText, Image, Tags, Loader2, ShieldCheck, Upload, Clock, X } from 'lucide-react';
+
+
 import { getMyPlace, updateMyPlace } from '../../lib/backendApi';
 import { getErrorMessage } from '../../lib/api';
 import type { BrunchPlaceDetail, BrunchPlaceUpdate } from '../../lib/types';
@@ -29,6 +32,7 @@ export default function MyPage() {
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [activeTab, setActiveTab] = useState<TabKey>('identity');
+  const [showVerifyModal, setShowVerifyModal] = useState(true);
 
   const [uploadingDoc, setUploadingDoc] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -187,16 +191,26 @@ export default function MyPage() {
 
       {/* Tab content with Protection Overlay */}
       <div style={{ maxWidth: '680px', position: 'relative' }}>
-        {verifyStatus !== 'verified' && (
+        {verifyStatus !== 'verified' && showVerifyModal && createPortal(
           <div style={{
-            position: 'absolute', inset: -16, zIndex: 10,
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(0,0,0,0.5)', zIndex: 9999,
             display: 'flex', alignItems: 'center', justifyContent: 'center'
           }}>
             <div className="card flex-col gap-4 animate-slide-up" style={{
+              position: 'relative',
               textAlign: 'center', padding: '40px', maxWidth: '480px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
               border: verifyStatus === 'pending' ? '1px solid var(--lk-warning)' : '1px solid var(--lk-purple)'
             }}>
+              <button 
+                onClick={() => setShowVerifyModal(false)}
+                style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--lk-text-muted)' }}
+                title="Fermer"
+              >
+                <X size={20} />
+              </button>
+
               {verifyStatus === 'pending' ? (
                 <>
                   <Clock size={48} style={{ color: 'var(--lk-warning)', margin: '0 auto' }} />
@@ -239,7 +253,16 @@ export default function MyPage() {
                 </>
               )}
             </div>
-          </div>
+          </div>, document.body
+        )}
+
+        {/* Protection Catcher: Re-opens modal if user clicks on blurred inert background */}
+        {verifyStatus !== 'verified' && !showVerifyModal && (
+          <div 
+            onClick={() => setShowVerifyModal(true)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 10, cursor: 'pointer' }}
+            title="Cliquer pour vérifier votre page"
+          />
         )}
 
         <div style={{
@@ -249,10 +272,10 @@ export default function MyPage() {
           userSelect: verifyStatus !== 'verified' ? 'none' : 'auto',
           transition: 'all 0.3s ease'
         }}>
-          {activeTab === 'identity' && <MyPageIdentity data={data} onSave={handleSave} saving={saving} />}
-          {activeTab === 'content' && <MyPageContent data={data} onSave={handleSave} saving={saving} />}
-          {activeTab === 'media' && <MyPageMedia data={data} onSave={handleSave} saving={saving} />}
-          {activeTab === 'tags' && <MyPageTags data={data} onSave={handleSave} saving={saving} />}
+          {activeTab === 'identity' && <MyPageIdentity data={data} onSave={verifyStatus !== 'verified' ? async () => {} : handleSave} saving={saving} />}
+          {activeTab === 'content' && <MyPageContent data={data} onSave={verifyStatus !== 'verified' ? async () => {} : handleSave} saving={saving} />}
+          {activeTab === 'media' && <MyPageMedia data={data} onSave={verifyStatus !== 'verified' ? async () => {} : handleSave} saving={saving} />}
+          {activeTab === 'tags' && <MyPageTags data={data} onSave={verifyStatus !== 'verified' ? async () => {} : handleSave} saving={saving} />}
         </div>
       </div>
     </div>
