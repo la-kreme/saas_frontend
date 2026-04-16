@@ -27,7 +27,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     let mounted = true;
 
+    // Detect hash tokens BEFORE any async work.
+    // When the Angular frontend redirects here with #access_token=...,
+    // the Supabase SDK will process the hash via detectSessionInUrl.
+    // But getSession() reads cookies that DON'T EXIST YET on this domain —
+    // it returns null, causing a premature redirect to /login.
+    // Fix: skip getSession() when hash tokens are present and let
+    // onAuthStateChange handle it (it fires AFTER hash processing).
+    const hasHashTokens = window.location.hash.includes('access_token=');
+
     const initSession = async () => {
+      if (hasHashTokens) {
+        // Don't call getSession() — let onAuthStateChange handle it below.
+        // isLoading stays true until onAuthStateChange fires.
+        return;
+      }
+
       try {
         const { data, error } = await supabase.auth.getSession();
         if (error) throw error;
@@ -54,9 +69,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     );
 
+    // Safety timeout: if onAuthStateChange never fires (e.g. invalid tokens),
+    // stop loading after 5s to avoid infinite spinner.
+    let timeout: ReturnType<typeof setTimeout> | null = null;
+    if (hasHashTokens) {
+      timeout = setTimeout(() => {
+        if (mounted) setIsLoading(false);
+      }, 5000);
+    }
+
     return () => {
       mounted = false;
       authListener.subscription.unsubscribe();
+      if (timeout) clearTimeout(timeout);
     };
   }, []);
 

@@ -9,10 +9,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 
-// Cookie domain: .lakreme.app couvre staging.lakreme.app ET lakreme.app
-// NOTE: .lakreme.fr (Angular) et .lakreme.app (SaaS) partagent le même cookie domain
+// Cookie domain: .koulis.app couvre staging.koulis.app ET koulis.app
+// NOTE: .lakreme.fr (Angular) et .koulis.app (SaaS) partagent le même cookie domain
 const isLocalhost = typeof window !== 'undefined' && window.location.hostname === 'localhost';
-const cookieDomain = isLocalhost ? undefined : '.lakreme.app';
+const cookieDomain = isLocalhost ? undefined : '.koulis.app';
 const secureFlag = isLocalhost ? '' : '; Secure';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
