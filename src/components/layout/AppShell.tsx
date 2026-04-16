@@ -96,8 +96,23 @@ function AppShellInner({ restaurantName, hasLinkedPlace }: AppShellInnerProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    window.location.href = 'https://lakreme.fr';
+    // scope:'global' révoque le refresh token côté Supabase server —
+    // invalide la session sur tous les domaines (lakreme.app ET lakreme.fr).
+    // Sans ça, lakreme.fr restaure immédiatement la session → boucle infinie.
+    await supabase.auth.signOut({ scope: 'global' });
+
+    const hostname = window.location.hostname;
+    let mainAppUrl: string;
+    if (hostname === 'localhost') {
+      mainAppUrl = 'http://localhost:4200';
+    } else if (hostname.includes('staging')) {
+      mainAppUrl = 'https://staging.lakreme.fr';
+    } else {
+      mainAppUrl = 'https://lakreme.fr';
+    }
+    // Redirige vers la page de login Angular (pas le dashboard)
+    // pour ne pas redonner accès à l'utilisateur déconnecté.
+    window.location.href = `${mainAppUrl}/auth/login`;
   };
 
   return (
