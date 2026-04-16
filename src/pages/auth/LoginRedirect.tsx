@@ -5,11 +5,11 @@ import { useEffect } from 'react';
  *
  * Mapping des environnements :
  * - localhost:5173  → localhost:4200 (dev)
- * - staging.lakreme.app → staging.lakreme.fr (staging)
- * - lakreme.app → lakreme.fr (prod)
+ * - staging.koulis.app → staging.lakreme.fr (staging)
+ * - koulis.app → lakreme.fr (prod)
  *
  * Le callback Angular passera la session via token-in-URL (hash fragment)
- * car .lakreme.fr et .lakreme.app sont des TLDs différents — les cookies
+ * car .lakreme.fr et .koulis.app sont des TLDs différents — les cookies
  * ne peuvent pas être partagés directement.
  */
 export default function LoginRedirect() {
@@ -19,10 +19,10 @@ export default function LoginRedirect() {
     let mainAppUrl: string;
     if (hostname === 'localhost') {
       mainAppUrl = 'http://localhost:4200';
-    } else if (hostname === 'staging.lakreme.app') {
+    } else if (hostname === 'staging.koulis.app') {
       mainAppUrl = 'https://staging.lakreme.fr';
     } else {
-      // Production: lakreme.app → lakreme.fr
+      // Production: koulis.app → lakreme.fr
       mainAppUrl = 'https://lakreme.fr';
     }
 

@@ -97,7 +97,7 @@ function AppShellInner({ restaurantName, hasLinkedPlace }: AppShellInnerProps) {
 
   const handleLogout = async () => {
     // scope:'global' révoque le refresh token côté Supabase server —
-    // invalide la session sur tous les domaines (lakreme.app ET lakreme.fr).
+    // invalide la session sur tous les domaines (koulis.app ET lakreme.fr).
     // Sans ça, lakreme.fr restaure immédiatement la session → boucle infinie.
     await supabase.auth.signOut({ scope: 'global' });
 
