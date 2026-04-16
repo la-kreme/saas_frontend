@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Search, MapPin, CheckCircle2, Loader2, Building, ArrowLeft } from 'lucide-react';
-import { searchBrunchPlaces, createBrunchPlace, type BrunchPlaceSearch, apiFetchAuth } from '../../lib/api';
+import { searchRestaurants, createRestaurant, type RestaurantSearch, apiFetchAuth } from '../../lib/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useDebounce } from '../../hooks/useDebounce';
 
@@ -18,8 +18,8 @@ export default function Step1Link() {
   // Search state
   const [query, setQuery] = useState('');
   const debouncedQuery = useDebounce(query, 300);
-  const [results, setResults] = useState<BrunchPlaceSearch[]>([]);
-  const [selected, setSelected] = useState<BrunchPlaceSearch | null>(null);
+  const [results, setResults] = useState<RestaurantSearch[]>([]);
+  const [selected, setSelected] = useState<RestaurantSearch | null>(null);
   const [loading, setLoading] = useState(false);
   const [linking, setLinking] = useState(false);
   const [error, setError] = useState('');
@@ -37,7 +37,7 @@ export default function Step1Link() {
 
     if (intent === 'claim' && brunchId && brunchName) {
       // Pre-fill the search with the known entity
-      const selectedPlace: BrunchPlaceSearch = {
+      const selectedPlace: RestaurantSearch = {
         id: brunchId,
         name: brunchName,
         address: '', // not strictly strictly needed for locking as backend has it
@@ -58,7 +58,7 @@ export default function Step1Link() {
     setLoading(true);
     setError('');
 
-    searchBrunchPlaces(debouncedQuery)
+    searchRestaurants(debouncedQuery)
       .then(data => { if (!cancelled) setResults(data); })
       .catch(() => { if (!cancelled) setError('Impossible de rechercher pour le moment. Réessayez.'); })
       .finally(() => { if (!cancelled) setLoading(false); });
@@ -66,13 +66,13 @@ export default function Step1Link() {
     return () => { cancelled = true; };
   }, [debouncedQuery, selected]);
 
-  const handleSelect = (place: BrunchPlaceSearch) => {
+  const handleSelect = (place: RestaurantSearch) => {
     setSelected(place);
     setResults([]);
     setQuery(place.name);
   };
 
-  const linkPlace = async (place: BrunchPlaceSearch) => {
+  const linkPlace = async (place: RestaurantSearch) => {
     setLinking(true);
     setError('');
     try {
@@ -114,7 +114,7 @@ export default function Step1Link() {
     setLinking(true);
     setError('');
     try {
-      const newPlace = await createBrunchPlace(createForm);
+      const newPlace = await createRestaurant(createForm);
       // linkPlace handles its own error display and setLinking
       await linkPlace(newPlace);
     } catch (err: unknown) {

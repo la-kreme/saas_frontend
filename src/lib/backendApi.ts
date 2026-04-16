@@ -5,7 +5,7 @@
  */
 import { supabase } from './supabase';
 import { env } from './env';
-import type { BrunchPlaceDetail, BrunchPlaceUpdate } from './types';
+import type { RestaurantDetail, RestaurantUpdate } from './types';
 
 const MB_API = env.meilleurbrunchApiUrl;
 
@@ -75,10 +75,10 @@ async function mbApiUpload<T>(
 // ─── Restaurateur Place Endpoints ─────────────────────────────────────────────
 
 export const getMyPlace = () =>
-  mbApiFetch<BrunchPlaceDetail>('/api/v1/restaurateur/me/place');
+  mbApiFetch<RestaurantDetail>('/api/v1/restaurateur/me/place');
 
-export const updateMyPlace = (body: Partial<BrunchPlaceUpdate>) =>
-  mbApiFetch<BrunchPlaceDetail>('/api/v1/restaurateur/me/place', {
+export const updateMyPlace = (body: Partial<RestaurantUpdate>) =>
+  mbApiFetch<RestaurantDetail>('/api/v1/restaurateur/me/place', {
     method: 'PATCH',
     body: JSON.stringify(body),
   });

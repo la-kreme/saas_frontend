@@ -80,7 +80,7 @@ export interface SnippetResponse {
   reserve_url: string;
 }
 
-export interface BrunchPlaceSearch {
+export interface RestaurantSearch {
   id: string;
   name: string;
   address: string;
@@ -88,11 +88,14 @@ export interface BrunchPlaceSearch {
   slug: string;
 }
 
+/** @deprecated Use RestaurantSearch */
+export type BrunchPlaceSearch = RestaurantSearch;
+
 // ─── Restaurateur Place Types (meilleurbrunch-backend) ────────────────────────
 
 export type ActorType = 'RESTAURANT' | 'COFFEE_SHOP' | 'HOTEL' | 'BAKERY';
 
-export interface BrunchPlaceDetail {
+export interface RestaurantDetail {
   // Identity (read-only)
   id: string;
   name: string;
@@ -204,7 +207,13 @@ export interface BrunchPlaceDetail {
   updated_at: string;
 }
 
-export type BrunchPlaceUpdate = Partial<
-  Omit<BrunchPlaceDetail, 'id' | 'name' | 'slug' | 'city_name' | 'country_code' | 'updated_at'>
+/** @deprecated Use RestaurantDetail */
+export type BrunchPlaceDetail = RestaurantDetail;
+
+export type RestaurantUpdate = Partial<
+  Omit<RestaurantDetail, 'id' | 'name' | 'slug' | 'city_name' | 'country_code' | 'updated_at'>
 >;
+
+/** @deprecated Use RestaurantUpdate */
+export type BrunchPlaceUpdate = RestaurantUpdate;
 

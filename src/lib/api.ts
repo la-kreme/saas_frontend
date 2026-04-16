@@ -13,7 +13,7 @@ import type {
   OpeningHoursItem,
   ReservationItem,
   SnippetResponse,
-  BrunchPlaceSearch,
+  RestaurantSearch,
 } from './types';
 
 // Re-export all types so existing `import { X } from './api'` still work.
@@ -26,7 +26,8 @@ export type {
   OpeningHoursItem,
   ReservationItem,
   SnippetResponse,
-  BrunchPlaceSearch,
+  RestaurantSearch,
+  BrunchPlaceSearch, // backward-compat alias
 } from './types';
 
 const API_BASE = env.apiUrl;
@@ -191,15 +192,21 @@ export const getWidgetSnippet = (restaurantId: string) =>
   apiFetchAuth<SnippetResponse>(`/api/v1/restaurant/me/snippet?restaurant_id=${restaurantId}`);
 
 
-export const searchBrunchPlaces = (query: string) =>
-  apiFetchAuth<BrunchPlaceSearch[]>(
+export const searchRestaurants = (query: string) =>
+  apiFetchAuth<RestaurantSearch[]>(
     `/api/v1/restaurant/search?q=${encodeURIComponent(query)}&limit=10`
   );
 
-export const createBrunchPlace = (body: { name: string; address?: string; city_name: string; phone?: string }) =>
-  apiFetchAuth<BrunchPlaceSearch>(
+/** @deprecated Use searchRestaurants */
+export const searchBrunchPlaces = searchRestaurants;
+
+export const createRestaurant = (body: { name: string; address?: string; city_name: string; phone?: string }) =>
+  apiFetchAuth<RestaurantSearch>(
     `/api/v1/restaurant/create`,
     { method: 'POST', body: JSON.stringify(body) }
   );
+
+/** @deprecated Use createRestaurant */
+export const createBrunchPlace = createRestaurant;
 
 export { WIDGET_BASE };
