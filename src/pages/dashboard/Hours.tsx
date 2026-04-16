@@ -330,7 +330,7 @@ export default function Hours() {
                     />
                   </div>
                   <div className="form-group mobile-full-width" style={{ flex: 1, minWidth: '100px' }}>
-                    <label className="form-label" style={{ fontSize: '11px' }}>Durée slot</label>
+                    <label className="form-label" style={{ fontSize: '11px' }}>Durée repas</label>
                     <select
                       className="form-input"
                       style={{ height: '32px', fontSize: '12px' }}
