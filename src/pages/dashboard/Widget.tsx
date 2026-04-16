@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Copy, Check, ExternalLink, Maximize2, Palette, MessageSquare, Link } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Copy, Check, ExternalLink, Maximize2, Palette, MessageSquare, Link, X } from 'lucide-react';
 import { WidgetPreview } from '../../components/widget/WidgetPreview';
 import { getMyConfig, updateMyConfig, getWidgetSnippet } from '../../lib/api';
 import { env } from '../../lib/env';
@@ -136,41 +137,51 @@ export default function Widget() {
 
   return (
     <div className="animate-slide-up">
-      {/* Test modal fullscreen */}
-      {testModalOpen && (
+      {/* Test modal — full-screen portal */}
+      {testModalOpen && createPortal(
         <div
           style={{
-            position: 'fixed', inset: 0, zIndex: 1000,
-            background: 'rgba(0,0,0,.8)', backdropFilter: 'blur(8px)',
-            display: 'flex', flexDirection: 'column', alignItems: 'center',
-            padding: '24px 16px',
-            overflowY: 'auto',
+            position: 'fixed', inset: 0, zIndex: 9999,
+            background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
           onClick={(e) => { if (e.target === e.currentTarget) setTestModalOpen(false); }}
         >
-          <div style={{ width: '100%', maxWidth: '480px' }}>
-            <div className="flex items-center justify-between" style={{ marginBottom: '16px', color: 'white' }}>
-              <span style={{ fontWeight: 700, fontSize: '16px' }}>
+          <div className="card animate-slide-up" style={{
+            width: '100%', maxWidth: '500px', maxHeight: '90vh',
+            overflow: 'hidden', display: 'flex', flexDirection: 'column',
+            position: 'relative', padding: 0,
+            boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+          }}>
+            {/* Header */}
+            <div className="flex items-center justify-between" style={{
+              padding: '16px 20px', borderBottom: '1px solid var(--lk-border)',
+            }}>
+              <span style={{ fontWeight: 700, fontSize: '15px' }}>
                 👤 Expérience client
               </span>
               <button
-                className="btn btn-secondary btn-sm"
                 onClick={() => setTestModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--lk-text-muted)' }}
+                title="Fermer"
               >
-                Fermer ✕
+                <X size={20} />
               </button>
             </div>
-            {restaurantId && (
-              <WidgetPreview
-                restaurantId={restaurantId}
-                lang="fr"
-                preview={false}
-                showControls
-                minHeight={520}
-              />
-            )}
+            {/* Widget preview */}
+            <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+              {publicToken && (
+                <WidgetPreview
+                  restaurantId={publicToken}
+                  lang="fr"
+                  preview={false}
+                  showControls
+                  minHeight={520}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        </div>, document.body
       )}
 
       <div style={{ marginBottom: '32px' }}>
@@ -181,7 +192,7 @@ export default function Widget() {
             </h1>
             <p className="text-muted text-sm">Intégrez et testez votre widget de réservation.</p>
           </div>
-          {restaurantId && (
+          {publicToken && (
             <button
               className="btn btn-primary"
               onClick={() => setTestModalOpen(true)}
