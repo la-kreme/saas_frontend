@@ -224,7 +224,7 @@ export default function Hours() {
 
   return (
     <div className="animate-fade-in" style={{ maxWidth: '800px' }}>
-      <div className="flex items-center justify-between" style={{ marginBottom: '24px' }}>
+      <div className="flex items-center justify-between" style={{ marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 className="text-xl font-bold" style={{ color: 'var(--lk-text-base)', marginBottom: '4px' }}>Horaires d'ouverture</h1>
           <p className="text-sm text-muted">Définissez quand vos clients peuvent réserver.</p>
@@ -308,8 +308,8 @@ export default function Hours() {
                 </div>
 
                 {/* Time + duration + interval */}
-                <div className="flex items-center gap-2" style={{ flexWrap: 'wrap' }}>
-                  <div className="form-group" style={{ flex: 1, minWidth: '100px' }}>
+                <div className="flex items-center gap-2 mobile-flex-col" style={{ flexWrap: 'wrap' }}>
+                  <div className="form-group mobile-full-width" style={{ flex: 1, minWidth: '100px' }}>
                     <label className="form-label" style={{ fontSize: '11px' }}>Ouverture</label>
                     <input
                       type="time"
@@ -319,7 +319,7 @@ export default function Hours() {
                       onChange={e => updateService(dayIdx, svcIdx, 'open_time', e.target.value)}
                     />
                   </div>
-                  <div className="form-group" style={{ flex: 1, minWidth: '100px' }}>
+                  <div className="form-group mobile-full-width" style={{ flex: 1, minWidth: '100px' }}>
                     <label className="form-label" style={{ fontSize: '11px' }}>Fermeture</label>
                     <input
                       type="time"
@@ -329,7 +329,7 @@ export default function Hours() {
                       onChange={e => updateService(dayIdx, svcIdx, 'close_time', e.target.value)}
                     />
                   </div>
-                  <div className="form-group" style={{ flex: 1, minWidth: '100px' }}>
+                  <div className="form-group mobile-full-width" style={{ flex: 1, minWidth: '100px' }}>
                     <label className="form-label" style={{ fontSize: '11px' }}>Durée slot</label>
                     <select
                       className="form-input"
@@ -342,7 +342,7 @@ export default function Hours() {
                       <option value={120}>120 min</option>
                     </select>
                   </div>
-                  <div className="form-group" style={{ flex: 1, minWidth: '100px' }}>
+                  <div className="form-group mobile-full-width" style={{ flex: 1, minWidth: '100px' }}>
                     <label className="form-label" style={{ fontSize: '11px' }}>Intervalle</label>
                     <select
                       className="form-input"

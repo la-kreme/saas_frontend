@@ -129,53 +129,56 @@ export default function Tables() {
         <div style={{ padding: '20px' }}>
           <div className="flex-col gap-3">
             {tables.map((table) => (
-              <div key={table.tempId} className="table-row flex items-center gap-3">
-                {/* Active Toggle */}
-                <label className="settings-toggle">
-                  <input 
-                    type="checkbox" 
-                    checked={table.is_active} 
-                    onChange={e => updateField(table.tempId, 'is_active', e.target.checked)} 
+              <div key={table.tempId} className="table-row flex mobile-flex-col gap-3" style={{ alignItems: 'flex-start' }}>
+                
+                {/* 1st Row: Toggle + Name */}
+                <div className="flex items-center gap-3 w-full">
+                  <label className="settings-toggle">
+                    <input 
+                      type="checkbox" 
+                      checked={table.is_active} 
+                      onChange={e => updateField(table.tempId, 'is_active', e.target.checked)} 
+                    />
+                    <span className="slider"></span>
+                  </label>
+
+                  <input
+                    className="form-input"
+                    style={{ flex: 1, height: '36px', fontSize: '13px', opacity: table.is_active ? 1 : 0.5 }}
+                    value={table.name}
+                    onChange={e => updateField(table.tempId, 'name', e.target.value)}
+                    placeholder="Nom de la table"
                   />
-                  <span className="slider"></span>
-                </label>
-
-                {/* Name */}
-                <input
-                  className="form-input"
-                  style={{ flex: 1, height: '36px', fontSize: '13px', opacity: table.is_active ? 1 : 0.5 }}
-                  value={table.name}
-                  onChange={e => updateField(table.tempId, 'name', e.target.value)}
-                  placeholder="Nom de la table"
-                />
-
-                {/* Seats stepper */}
-                <div className="stepper" style={{ opacity: table.is_active ? 1 : 0.5 }}>
-                  <button
-                    className="stepper-btn"
-                    onClick={() => updateField(table.tempId, 'seats', Math.max(1, table.seats - 1))}
-                    disabled={table.seats <= 1}
-                  >—</button>
-                  <span className="stepper-value">{table.seats}</span>
-                  <button
-                    className="stepper-btn"
-                    onClick={() => updateField(table.tempId, 'seats', table.seats + 1)}
-                  >+</button>
                 </div>
 
-                <span className="text-xs text-muted" style={{ minWidth: '50px', opacity: table.is_active ? 1 : 0.5 }}>
-                  {table.seats} couv.
-                </span>
+                {/* 2nd Row: Stepper + Actions */}
+                <div className="flex items-center gap-3 mobile-actions-row" style={{ width: '100%', justifyContent: 'flex-end' }}>
+                  <div className="stepper" style={{ opacity: table.is_active ? 1 : 0.5 }}>
+                    <button
+                      className="stepper-btn"
+                      onClick={() => updateField(table.tempId, 'seats', Math.max(1, table.seats - 1))}
+                      disabled={table.seats <= 1}
+                    >—</button>
+                    <span className="stepper-value">{table.seats}</span>
+                    <button
+                      className="stepper-btn"
+                      onClick={() => updateField(table.tempId, 'seats', table.seats + 1)}
+                    >+</button>
+                  </div>
 
-                {/* Delete */}
-                <button
-                  className="btn btn-ghost btn-sm"
-                  onClick={() => removeTable(table.tempId, table.id)}
-                  aria-label="Supprimer"
-                  style={{ padding: '0 8px', color: 'var(--lk-error)' }}
-                >
-                  <Trash2 size={16} />
-                </button>
+                  <span className="text-xs text-muted" style={{ minWidth: '50px', opacity: table.is_active ? 1 : 0.5, textAlign: 'center' }}>
+                    {table.seats} couv.
+                  </span>
+
+                  <button
+                    className="btn btn-ghost btn-sm"
+                    onClick={() => removeTable(table.tempId, table.id)}
+                    aria-label="Supprimer"
+                    style={{ padding: '0 8px', color: 'var(--lk-error)' }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             ))}
 

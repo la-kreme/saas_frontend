@@ -111,36 +111,38 @@ export default function Today() {
               .map(resa => (
                 <div
                   key={resa.id}
-                  className="table-row"
-                  style={{ paddingLeft: '12px' }}
+                  className="table-row mobile-flex-col"
+                  style={{ paddingLeft: '12px', alignItems: 'center' }}
                 >
-                  {/* Time */}
-                  <div style={{
-                    minWidth: '52px',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    color: 'var(--lk-purple-light)',
-                    fontVariantNumeric: 'tabular-nums',
-                  }}>
-                    {resa.reservation_time.slice(0, 5)}
-                  </div>
-
-                  {/* Guest */}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 500, fontSize: '14px' }}>
-                      {resa.guest_first_name} {resa.guest_last_name}
+                  <div className="flex w-full items-center gap-4">
+                    {/* Time */}
+                    <div style={{
+                      minWidth: '52px',
+                      fontWeight: 700,
+                      fontSize: '14px',
+                      color: 'var(--lk-purple-light)',
+                      fontVariantNumeric: 'tabular-nums',
+                    }}>
+                      {resa.reservation_time.slice(0, 5)}
                     </div>
-                    <div className="text-xs text-muted">
-                      {resa.party_size} pers. {resa.notes ? `· ${resa.notes.slice(0, 40)}${resa.notes.length > 40 ? '…' : ''}` : ''}
-                    </div>
-                  </div>
 
-                  {/* Status */}
-                  <span className={`badge badge-${resa.status === 'confirmed' ? 'confirmed' : resa.status === 'pending' ? 'pending' : 'cancelled'}`}>
-                    {resa.status === 'confirmed' ? 'Confirmé' :
-                     resa.status === 'pending'   ? 'En attente' :
-                     resa.status === 'no_show'   ? 'No-show' : 'Annulé'}
-                  </span>
+                    {/* Guest */}
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 500, fontSize: '14px' }}>
+                        {resa.guest_first_name} {resa.guest_last_name}
+                      </div>
+                      <div className="text-xs text-muted">
+                        {resa.party_size} pers. {resa.notes ? `· ${resa.notes.slice(0, 40)}${resa.notes.length > 40 ? '…' : ''}` : ''}
+                      </div>
+                    </div>
+
+                    {/* Status */}
+                    <span className={`badge badge-${resa.status === 'confirmed' ? 'confirmed' : resa.status === 'pending' ? 'pending' : 'cancelled'}`}>
+                      {resa.status === 'confirmed' ? 'Confirmé' :
+                       resa.status === 'pending'   ? 'En attente' :
+                       resa.status === 'no_show'   ? 'No-show' : 'Annulé'}
+                    </span>
+                  </div>
                 </div>
               ))
             }

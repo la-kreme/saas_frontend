@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarDays, Code2, Settings as SettingsIcon,
-  LogOut, Zap, LayoutGrid, Clock, Globe, Lock, Loader2,
+  LogOut, Zap, LayoutGrid, Clock, Globe, Lock, Loader2, Menu,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getMyConfig } from '../../lib/api';
@@ -32,7 +32,7 @@ const NAV_ITEMS: readonly NavItem[] = [
 
 // ─── Sidebar Navigation (Tour-aware) ─────────────────────────────────────────
 
-function SidebarNav({ hasLinkedPlace }: { hasLinkedPlace: boolean }) {
+function SidebarNav({ hasLinkedPlace, onClose }: { hasLinkedPlace: boolean; onClose?: () => void }) {
   const tour = useTourSafe();
   const location = useLocation();
   const tourTargetPath = tour?.isActive ? TOUR_STEPS[tour.currentStep].path : null;
@@ -52,7 +52,13 @@ function SidebarNav({ hasLinkedPlace }: { hasLinkedPlace: boolean }) {
             to={isDisabled ? location.pathname : to}
             end={end}
             className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
-            onClick={(e) => { if (isDisabled) e.preventDefault(); }}
+            onClick={(e) => {
+              if (isDisabled) {
+                e.preventDefault();
+              } else if (onClose) {
+                onClose();
+              }
+            }}
             style={{
               opacity: isLocked || isTourDimmed ? 0.4 : 1,
               filter: isLocked ? 'grayscale(1)' : 'none',
@@ -87,6 +93,7 @@ interface AppShellInnerProps {
 
 function AppShellInner({ restaurantName, hasLinkedPlace }: AppShellInnerProps) {
   const { user, supabase } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -95,15 +102,21 @@ function AppShellInner({ restaurantName, hasLinkedPlace }: AppShellInnerProps) {
 
   return (
     <div className="app-shell">
+      {/* ── Mobile Overlay ── */}
+      <div 
+        className={`mobile-overlay ${isMobileMenuOpen ? 'active' : ''}`} 
+        onClick={() => setIsMobileMenuOpen(false)}
+      />
+
       {/* ── Sidebar ── */}
-      <aside className="sidebar">
+      <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-logo">
           <img src="/logo.png" alt="La Krème" style={{ height: '36px', width: 'auto' }} />
         </div>
 
         <nav className="sidebar-nav">
           <span className="sidebar-section-label">Dashboard</span>
-          <SidebarNav hasLinkedPlace={hasLinkedPlace} />
+          <SidebarNav hasLinkedPlace={hasLinkedPlace} onClose={() => setIsMobileMenuOpen(false)} />
 
           <div className="mt-auto" style={{ paddingTop: '32px' }}>
             <div className="divider" />
@@ -132,8 +145,13 @@ function AppShellInner({ restaurantName, hasLinkedPlace }: AppShellInnerProps) {
       {/* ── Main ── */}
       <div className="main-content">
         <header className="topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-          <div className="font-semibold text-sm" style={{ color: 'var(--lk-text-primary)' }}>
-            {restaurantName || 'Mon Restaurant'}
+          <div className="flex items-center gap-3">
+            <button className="mobile-menu-btn" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu size={20} />
+            </button>
+            <div className="font-semibold text-sm" style={{ color: 'var(--lk-text-primary)' }}>
+              {restaurantName || 'Mon Restaurant'}
+            </div>
           </div>
           <span className="badge badge-active" style={{ fontSize: '11px' }}>
             <Zap size={10} />

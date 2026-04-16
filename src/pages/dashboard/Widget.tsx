@@ -185,7 +185,7 @@ export default function Widget() {
       )}
 
       <div style={{ marginBottom: '32px' }}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between" style={{ flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <h1 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '4px' }}>
               Mon Widget
@@ -204,7 +204,7 @@ export default function Widget() {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '24px' }}>
         {/* ── Colonne gauche : snippets + guide ── */}
         <div className="flex-col gap-6 flex-1">
           {/* Option Annuaire La Krème */}

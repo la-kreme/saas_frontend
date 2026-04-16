@@ -103,21 +103,21 @@ export default function Reservations() {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center" style={{ marginBottom: '20px', flexWrap: 'wrap', justifyContent: 'space-between', gap: '12px' }}>
-        <div className="flex items-center gap-3">
-          <div style={{ position: 'relative' }}>
+      <div className="flex mobile-flex-col" style={{ marginBottom: '20px', justifyContent: 'space-between', gap: '12px' }}>
+        <div className="flex items-center gap-3 w-full" style={{ flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative', flex: '1 1 min-content' }}>
             <CalendarDays size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--lk-text-muted)' }} />
             <input
               type="date"
-              className="form-input"
-              style={{ paddingLeft: '36px', height: '36px', fontSize: '13px', width: '180px' }}
+              className="form-input form-input-responsive"
+              style={{ paddingLeft: '36px', height: '36px', fontSize: '13px', width: '100%', minWidth: '150px' }}
               value={filterDate}
               onChange={e => setFilterDate(e.target.value)}
             />
           </div>
           <select
-            className="form-input"
-            style={{ height: '36px', fontSize: '13px', width: '160px' }}
+            className="form-input form-input-responsive"
+            style={{ height: '36px', fontSize: '13px', flex: '1 1 min-content', minWidth: '150px' }}
             value={filterStatus}
             onChange={e => setFilterStatus(e.target.value)}
           >
@@ -127,7 +127,8 @@ export default function Reservations() {
           </select>
         </div>
         <button 
-          className="btn btn-primary flex items-center gap-2" 
+          className="btn btn-primary flex items-center justify-center gap-2 mobile-actions-row" 
+          style={{ width: 'auto' }}
           onClick={() => setModalOpen(true)}
         >
           <Plus size={16} />
@@ -135,7 +136,7 @@ export default function Reservations() {
         </button>
       </div>
 
-      {/* Table */}
+      {/* Table & Mobile Cards */}
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         {loading ? (
           <div className="flex items-center justify-center" style={{ padding: '48px', gap: '12px' }}>
@@ -148,6 +149,9 @@ export default function Reservations() {
             <p style={{ fontWeight: 500 }}>Aucune réservation</p>
           </div>
         ) : (
+          <>
+          {/* Desktop Table */}
+          <div className="hide-on-mobile">
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--lk-border)', background: 'var(--lk-surface-2)' }}>
@@ -230,6 +234,72 @@ export default function Reservations() {
               ))}
             </tbody>
           </table>
+          </div>
+
+          {/* Mobile Cards View */}
+          <div className="show-on-mobile-flex flex-col" style={{ gap: '0' }}>
+            {reservations.map((resa, i) => (
+              <div key={resa.id} style={{
+                padding: '16px',
+                borderBottom: i < reservations.length - 1 ? '1px solid var(--lk-border)' : 'none',
+                display: 'flex', flexDirection: 'column', gap: '8px',
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <div style={{ fontSize: '15px', fontWeight: 600 }}>{resa.guest_first_name} {resa.guest_last_name}</div>
+                    <div style={{ fontSize: '12px', color: 'var(--lk-text-muted)' }}>{resa.party_size} pers. · {new Date(resa.reservation_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} à {resa.reservation_time.slice(0, 5)}</div>
+                  </div>
+                  <span className={`badge badge-${resa.status === 'confirmed' ? 'confirmed' : resa.status === 'pending' ? 'pending' : resa.status === 'no_show' ? 'no-show' : 'cancelled'}`}>
+                    {statusLabel(resa.status)}
+                  </span>
+                </div>
+                
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                  <div style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--lk-purple-muted)', fontWeight: 600 }}>
+                    #{resa.confirmation_code}
+                  </div>
+                  
+                  {/* Actions mobile */}
+                  <div className="flex items-center gap-2">
+                    {actionLoading === resa.id ? (
+                      <Loader2 size={16} style={{ animation: 'spin 1s linear infinite', color: 'var(--lk-text-muted)' }} />
+                    ) : (
+                      <>
+                        {resa.status === 'pending' && (
+                          <>
+                            <button
+                              className="btn btn-sm"
+                              style={{ padding: '6px', background: 'var(--lk-surface-2)', border: '1px solid var(--lk-error)', color: 'var(--lk-error)' }}
+                              onClick={() => handleStatusChange(resa.id, 'cancelled')}
+                            >
+                              <X size={14} /> Refuser
+                            </button>
+                            <button
+                              className="btn btn-sm"
+                              style={{ padding: '6px', background: 'var(--lk-surface-2)', border: '1px solid var(--lk-success)', color: 'var(--lk-success)' }}
+                              onClick={() => handleStatusChange(resa.id, 'confirmed')}
+                            >
+                              <Check size={14} /> Confirmer
+                            </button>
+                          </>
+                        )}
+                        {resa.status === 'confirmed' && (
+                          <button
+                            className="btn btn-sm"
+                            style={{ padding: '4px 8px', fontSize: '12px', background: 'transparent', color: 'var(--lk-error)', border: '1px solid var(--lk-error-muted)' }}
+                            onClick={() => handleStatusChange(resa.id, 'cancelled')}
+                          >
+                            Annuler
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          </>
         )}
       </div>
 

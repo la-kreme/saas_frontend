@@ -135,12 +135,11 @@ export default function MyPage() {
       </div>
 
       {/* Tabs */}
-      <div style={{
+      <div className="tabs-runner" style={{
         display: 'flex',
         gap: '4px',
         marginBottom: '24px',
         borderBottom: '1px solid var(--lk-border)',
-        paddingBottom: '0',
       }}>
         {TABS.map(tab => {
           const Icon = tab.icon;

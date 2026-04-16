@@ -229,7 +229,7 @@ export default function Settings() {
           {/* Save */}
           <button
             id="btn-settings-save"
-            className="btn btn-primary"
+            className="btn btn-primary mobile-full-width"
             style={{ alignSelf: 'flex-start' }}
             disabled={saving}
             onClick={handleSave}
