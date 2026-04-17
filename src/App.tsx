@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { getMyConfig } from './lib/api';
+import { env } from './lib/env';
 
 
 // Layout
@@ -27,6 +28,39 @@ import Tables from './pages/dashboard/Tables';
 import Hours from './pages/dashboard/Hours';
 import Widget from './pages/dashboard/Widget';
 import Settings from './pages/dashboard/Settings';
+
+// ─── Public redirect: /reserve/:token → reservation_service ──────────────────
+// The reservation page is served by the reservation_service backend, not the SaaS.
+// But if WIDGET_BASE_URL is set to koulis.app, shared links land here.
+// This component redirects to the actual backend without requiring auth.
+
+function ReserveRedirect() {
+  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const lang = searchParams.get('lang') || 'fr';
+    window.location.replace(`${env.apiUrl}/reserve/${token}?lang=${lang}`);
+  }, [token, searchParams]);
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="spinner" />
+    </div>
+  );
+}
+
+function WidgetRedirect() {
+  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const lang = searchParams.get('lang') || 'fr';
+    window.location.replace(`${env.apiUrl}/widget/${token}?lang=${lang}`);
+  }, [token, searchParams]);
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="spinner" />
+    </div>
+  );
+}
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -72,6 +106,10 @@ export default function App() {
 
         {/* Auth */}
         <Route path="/login" element={<LoginRedirect />} />
+
+        {/* Public pages — redirect to reservation_service (no auth required) */}
+        <Route path="/reserve/:token" element={<ReserveRedirect />} />
+        <Route path="/widget/:token" element={<WidgetRedirect />} />
 
         {/* Onboarding (protégé) */}
         <Route element={<ProtectedRoute />}>
