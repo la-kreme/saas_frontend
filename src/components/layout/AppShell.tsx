@@ -126,7 +126,7 @@ function AppShellInner({ restaurantName, hasLinkedPlace }: AppShellInnerProps) {
       {/* ── Sidebar ── */}
       <aside className={`sidebar ${isMobileMenuOpen ? 'mobile-open' : ''}`}>
         <div className="sidebar-logo">
-          <img src="/logo.png" alt="La Krème" style={{ height: '36px', width: 'auto' }} />
+          <img src="/logo.png" alt="Koulis" style={{ height: '36px', width: 'auto' }} />
         </div>
 
         <nav className="sidebar-nav">

@@ -365,10 +365,10 @@ export default function Widget() {
           </button>
         </div>
 
-        {/* ── 3. Annuaire La Krème ──────────────────────────────*/}
+        {/* ── 3. Annuaire Koulis ──────────────────────────────*/}
         <div className="card" style={{ padding: '20px', border: '1px solid var(--lk-border-focus)' }}>
           <h3 className="section-title" style={{ marginBottom: '12px' }}>
-            Annuaire La Krème
+            Annuaire Koulis
           </h3>
           <div className="flex items-center justify-between">
             <div>
@@ -383,7 +383,7 @@ export default function Widget() {
                 checked={showOnDirectory}
                 onChange={(e) => handleToggleDirectory(e.target.checked)}
                 disabled={loadingToggle}
-                aria-label="Afficher sur l'annuaire La Krème"
+                aria-label="Afficher sur l'annuaire Koulis"
               />
               <span className="slider round"></span>
             </label>

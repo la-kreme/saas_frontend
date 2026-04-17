@@ -85,7 +85,7 @@ export default function Step5Widget() {
         )}
         <p className="onboarding-step-desc">
           Voici votre widget de réservation en direct. Copiez le code sur votre site
-          puis activez-le pour qu'il soit visible sur La Krème.
+          puis activez-le pour qu'il soit visible sur Koulis.
         </p>
       </div>
 
@@ -103,7 +103,7 @@ export default function Step5Widget() {
             style={{ width: '18px', height: '18px', accentColor: 'var(--lk-primary)' }}
           />
           <label htmlFor="showOnDirectory" style={{ fontWeight: 600, fontSize: '14px', cursor: 'pointer' }}>
-            Activer la réservation sur l'annuaire La Krème
+            Activer la réservation sur l'annuaire Koulis
           </label>
         </div>
         <p className="text-xs text-muted" style={{ marginLeft: '30px' }}>

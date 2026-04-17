@@ -20,7 +20,7 @@ const TABS: { key: TabKey; label: string; icon: typeof Building }[] = [
 ];
 
 /**
- * Dashboard — Ma page La Krème
+ * Dashboard — Ma page Koulis
  * Allows the restaurateur to edit all visible fields of their lakreme.fr page.
  */
 export default function MyPage() {
@@ -127,7 +127,7 @@ export default function MyPage() {
       {/* Header */}
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '24px', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '4px' }}>
-          Ma page La Krème
+          Ma page Koulis
         </h1>
         <p className="text-muted text-sm">
           {data.name} · {data.city_name || 'Ville non définie'}
@@ -215,7 +215,7 @@ export default function MyPage() {
                   <p className="text-muted">
                     Notre équipe examine actuellement votre document Kbis. 
                     Ce processus prend généralement 24 à 48 heures ouvrées.<br/><br/>
-                    En attendant, votre page publique La Krème n'est pas modifiable.
+                    En attendant, votre page publique Koulis n'est pas modifiable.
                   </p>
                 </>
               ) : (
@@ -223,7 +223,7 @@ export default function MyPage() {
                   <ShieldCheck size={48} style={{ color: 'var(--lk-purple)', margin: '0 auto' }} />
                   <h2 style={{ fontSize: '20px', fontWeight: 600 }}>Revendiquez votre page</h2>
                   <p className="text-muted text-sm">
-                    Pour modifier la présentation de votre établissement sur l'annuaire La Krème, vous devez vérifier votre identité.
+                    Pour modifier la présentation de votre établissement sur l'annuaire Koulis, vous devez vérifier votre identité.
                     Transmettez un Kbis ou une photo depuis l'intérieur.
                   </p>
                   
