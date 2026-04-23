@@ -93,10 +93,16 @@ function RootRedirect() {
   }
 
   if (!user) {
-    // Full page load pour sortir du SPA et atteindre Next.js /login
-    const loginUrl = window.location.hostname === 'localhost'
-      ? 'http://localhost:3000/login'
-      : '/login';
+    // Cross-domain redirect vers koulis.ai/login (Next.js)
+    const hostname = window.location.hostname;
+    let loginUrl: string;
+    if (hostname === 'localhost') {
+      loginUrl = 'http://localhost:3000/login';
+    } else if (hostname === 'staging.koulis.app') {
+      loginUrl = 'https://staging.koulis.ai/login';
+    } else {
+      loginUrl = 'https://koulis.ai/login';
+    }
     window.location.href = loginUrl;
     return null;
   }
