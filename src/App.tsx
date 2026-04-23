@@ -92,7 +92,14 @@ function RootRedirect() {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    // Full page load pour sortir du SPA et atteindre Next.js /login
+    const loginUrl = window.location.hostname === 'localhost'
+      ? 'http://localhost:3000/login'
+      : '/login';
+    window.location.href = loginUrl;
+    return null;
+  }
   return <Navigate to={destination!} replace />;
 }
 

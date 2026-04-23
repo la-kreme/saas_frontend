@@ -1,33 +1,25 @@
 import { useEffect } from 'react';
 
 /**
- * Redirige vers le frontend Angular pour le login OAuth.
+ * Redirige vers la page login Next.js (koulis.app/login).
+ *
+ * Full page load pour sortir du SPA et atteindre Next.js.
  *
  * Mapping des environnements :
- * - localhost:5173  → localhost:4200 (dev)
- * - staging.koulis.app → staging.lakreme.fr (staging)
- * - koulis.app → lakreme.fr (prod)
- *
- * Le callback Angular passera la session via token-in-URL (hash fragment)
- * car .lakreme.fr et .koulis.app sont des TLDs différents — les cookies
- * ne peuvent pas être partagés directement.
+ * - localhost:5173  → localhost:3000/login (Next.js dev)
+ * - staging/prod    → /login (même domaine, Next.js gère)
  */
 export default function LoginRedirect() {
   useEffect(() => {
     const hostname = window.location.hostname;
 
-    let mainAppUrl: string;
     if (hostname === 'localhost') {
-      mainAppUrl = 'http://localhost:4200';
-    } else if (hostname === 'staging.koulis.app') {
-      mainAppUrl = 'https://staging.lakreme.fr';
+      // En dev, le SPA tourne sur :5173, Next.js sur :3000
+      window.location.href = 'http://localhost:3000/login';
     } else {
-      // Production: koulis.app → lakreme.fr
-      mainAppUrl = 'https://lakreme.fr';
+      // En prod/staging, Next.js est devant sur le même domaine
+      window.location.href = '/login';
     }
-
-    const returnUrl = encodeURIComponent(window.location.origin + '/dashboard');
-    window.location.href = `${mainAppUrl}/auth/login?redirect=${returnUrl}`;
   }, []);
 
   return (
@@ -40,7 +32,7 @@ export default function LoginRedirect() {
       gap: '16px',
     }}>
       <div className="spinner" />
-      <p className="text-sm text-muted">Redirection vers la connexion principale...</p>
+      <p className="text-sm text-muted">Redirection vers la connexion...</p>
     </div>
   );
 }

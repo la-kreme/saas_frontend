@@ -22,7 +22,16 @@ export function ProtectedRoute() {
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    // Full page load pour sortir du SPA et atteindre Next.js /login
+    const loginUrl = window.location.hostname === 'localhost'
+      ? 'http://localhost:3000/login'
+      : '/login';
+    window.location.href = loginUrl;
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="spinner" />
+      </div>
+    );
   }
 
   return <Outlet />;
