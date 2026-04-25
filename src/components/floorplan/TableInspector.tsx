@@ -1,5 +1,8 @@
 import { X, Trash2 } from 'lucide-react';
 import type { TableItem } from '../../lib/types';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
+import { IconBtn } from '../ui/IconBtn';
 
 interface Props {
   table: TableItem;
@@ -8,90 +11,116 @@ interface Props {
   onClose: () => void;
 }
 
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
+      <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 500, color: 'var(--lk-text-secondary)' }}>
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+const inputStyle: React.CSSProperties = {
+  height: 34,
+  padding: '0 10px',
+  fontSize: 'var(--fs-sm)',
+  border: '1px solid var(--lk-border)',
+  borderRadius: 'var(--radius-sm)',
+  background: 'var(--lk-bg-card)',
+  outline: 'none',
+  color: 'var(--lk-text-primary)',
+  width: '100%',
+};
+
 export function TableInspector({ table, onUpdate, onDelete, onClose }: Props) {
   return (
-    <div style={{
-      position: 'absolute', top: 0, right: 0, bottom: 0,
-      width: '280px', background: 'var(--lk-bg-base)',
-      borderLeft: '1px solid var(--lk-border)',
-      boxShadow: '-4px 0 12px rgba(0,0,0,0.08)',
-      zIndex: 40, padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px',
-      overflowY: 'auto',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h4 style={{ margin: 0, fontSize: '14px' }}>Table</h4>
-        <button className="btn btn-ghost btn-sm" onClick={onClose}><X size={14} /></button>
-      </div>
-
-      <div className="form-group">
-        <label>Nom</label>
-        <input
-          className="form-input"
-          value={table.name}
-          onChange={(e) => onUpdate(table.id, { name: e.target.value })}
-        />
-      </div>
-
-      <div className="form-group">
-        <label>Places</label>
-        <div className="stepper">
-          <button onClick={() => onUpdate(table.id, { seats: Math.max(1, table.seats - 1) })}>-</button>
-          <span>{table.seats}</span>
-          <button onClick={() => onUpdate(table.id, { seats: table.seats + 1 })}>+</button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <Card padded={false} style={{ padding: '16px 18px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <span style={{ fontSize: 'var(--fs-base)', fontWeight: 600 }}>
+            Table {table.name}
+          </span>
+          <IconBtn size={26} onClick={onClose}><X size={14} /></IconBtn>
         </div>
-      </div>
 
-      <div className="form-group">
-        <label>Forme</label>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            className={`btn btn-sm ${table.shape === 'rect' ? 'btn-primary' : 'btn-ghost'}`}
-            onClick={() => onUpdate(table.id, { shape: 'rect' })}
-          >
-            Rectangle
-          </button>
-          <button
-            className={`btn btn-sm ${table.shape === 'circle' ? 'btn-primary' : 'btn-ghost'}`}
-            onClick={() => onUpdate(table.id, { shape: 'circle' })}
-          >
-            Rond
-          </button>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+          <Field label="Nom">
+            <input
+              style={inputStyle}
+              value={table.name}
+              onChange={(e) => onUpdate(table.id, { name: e.target.value })}
+            />
+          </Field>
+          <Field label="Couverts">
+            <input
+              type="number"
+              min={1}
+              style={inputStyle}
+              value={table.seats}
+              onChange={(e) => onUpdate(table.id, { seats: Math.max(1, parseInt(e.target.value) || 1) })}
+            />
+          </Field>
         </div>
-      </div>
 
-      <div className="form-group">
-        <label>Rotation ({table.rotation}°)</label>
-        <input
-          type="range"
-          min={0}
-          max={360}
-          step={15}
-          value={table.rotation}
-          onChange={(e) => onUpdate(table.id, { rotation: +e.target.value })}
-          style={{ width: '100%' }}
-        />
-      </div>
+        <Field label="Forme">
+          <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+            {(['rect', 'circle'] as const).map(s => (
+              <button
+                key={s}
+                onClick={() => onUpdate(table.id, { shape: s })}
+                style={{
+                  flex: 1, height: 32, fontSize: 'var(--fs-sm)',
+                  fontWeight: 500,
+                  borderRadius: 'var(--radius-sm)',
+                  border: '1px solid',
+                  borderColor: table.shape === s ? 'rgba(237, 115, 169, 0.3)' : 'var(--lk-border)',
+                  background: table.shape === s ? 'var(--lk-primary-tint)' : 'var(--lk-bg-card)',
+                  color: table.shape === s ? 'var(--lk-primary-strong)' : 'var(--lk-text-secondary)',
+                  cursor: 'pointer', transition: 'all var(--transition-fast)',
+                }}
+              >
+                {s === 'rect' ? 'Rectangle' : 'Rond'}
+              </button>
+            ))}
+          </div>
+        </Field>
 
-      <div className="form-group">
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Field label={`Rotation (${table.rotation}°)`}>
+          <input
+            type="range"
+            min={0} max={360} step={15}
+            value={table.rotation}
+            onChange={(e) => onUpdate(table.id, { rotation: +e.target.value })}
+            style={{ width: '100%', marginTop: 4 }}
+          />
+        </Field>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
           <input
             type="checkbox"
             checked={table.is_active}
             onChange={(e) => onUpdate(table.id, { is_active: e.target.checked })}
+            id="table-active"
           />
-          Active
-        </label>
-      </div>
+          <label htmlFor="table-active" style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-secondary)', cursor: 'pointer' }}>
+            Active
+          </label>
+        </div>
 
-      <div style={{ marginTop: 'auto' }}>
-        <button
-          className="btn btn-ghost w-full"
-          style={{ color: 'var(--lk-error)' }}
-          onClick={() => onDelete(table.id)}
-        >
-          <Trash2 size={14} /> Supprimer
-        </button>
-      </div>
+        <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
+          <Button
+            variant="danger"
+            size="sm"
+            icon={<Trash2 size={12} />}
+            onClick={() => onDelete(table.id)}
+            style={{ flex: 1 }}
+          >
+            Supprimer
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }

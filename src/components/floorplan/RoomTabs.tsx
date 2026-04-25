@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react';
 import type { Room } from '../../lib/types';
+import { FilterPill } from '../ui/FilterPill';
 
 interface Props {
   rooms: Room[];
@@ -10,18 +11,32 @@ interface Props {
 
 export function RoomTabs({ rooms, activeRoomId, onSwitch, onAdd }: Props) {
   return (
-    <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
       {rooms.map((room) => (
-        <button
+        <FilterPill
           key={room.id}
-          className={`btn btn-sm ${room.id === activeRoomId ? 'btn-primary' : 'btn-ghost'}`}
+          active={room.id === activeRoomId}
           onClick={() => onSwitch(room.id)}
         >
           {room.name}
-        </button>
+        </FilterPill>
       ))}
-      <button className="btn btn-sm btn-ghost" onClick={onAdd} title="Nouvelle salle">
-        <Plus size={14} />
+      <button
+        onClick={onAdd}
+        title="Nouvelle salle"
+        style={{
+          padding: '6px 10px',
+          fontSize: 'var(--fs-sm)',
+          color: 'var(--lk-text-muted)',
+          background: 'transparent',
+          border: 'none',
+          cursor: 'pointer',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+        }}
+      >
+        <Plus size={13} /> Zone
       </button>
     </div>
   );

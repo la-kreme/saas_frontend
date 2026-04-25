@@ -1,9 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
-import { Plus, Save, Loader2 } from 'lucide-react';
+import { Plus, Save, Loader2, Info } from 'lucide-react';
 import {
   getFloorplan, createTable, updateTable, deleteTable,
   bulkUpdateTablePositions, createRoom, updateRoom, deleteRoom,
-  previewMerge, createMerge, deleteMerge, createMergeWithReservation,
+  previewMerge, createMerge, createMergeWithReservation,
   getErrorMessage,
 } from '../../lib/api';
 import type { TableItem, Room, MergePreview } from '../../lib/types';
@@ -18,6 +18,7 @@ import { MergeQuickToolbar } from '../../components/floorplan/MergeQuickToolbar'
 import { MergeDialog } from '../../components/floorplan/MergeDialog';
 import { RelocationConfirmDialog } from '../../components/floorplan/RelocationConfirmDialog';
 import { NewReservationDrawer } from '../../components/floorplan/NewReservationDrawer';
+import { PageHeader, Card, Button, Kbd } from '../../components/ui';
 
 export default function Floorplan() {
   const { state, dispatch } = useFloorplanState();
@@ -234,16 +235,6 @@ export default function Floorplan() {
     }
   };
 
-  const _handleDeleteMerge = async (mergeId: string) => {
-    try {
-      await deleteMerge(mergeId);
-      dispatch({ type: 'REMOVE_MERGE', id: mergeId });
-    } catch (err) {
-      setError(getErrorMessage(err));
-    }
-  };
-  void _handleDeleteMerge; // Sera utilisé en Mode Service (context menu sur merge)
-
   const handleNewResaSubmit = async (data: {
     reservation_date: string; reservation_time: string; guests: number;
     guest_first_name: string; guest_last_name: string;
@@ -274,57 +265,42 @@ export default function Floorplan() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '400px', gap: '12px' }}>
-        <Loader2 size={24} className="animate-spin" style={{ color: 'var(--lk-purple-light)' }} />
-        <span style={{ color: 'var(--lk-text-muted)' }}>Chargement du plan de salle...</span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 12 }}>
+        <Loader2 size={24} style={{ animation: 'spin 0.7s linear infinite', color: 'var(--lk-primary)' }} />
+        <span style={{ color: 'var(--lk-text-muted)', fontSize: 'var(--fs-sm)' }}>Chargement du plan de salle...</span>
       </div>
     );
   }
 
   return (
-    <div className="animate-fade-in" style={{
-      display: 'flex', flexDirection: 'column', gap: '16px',
+    <div className="lk-animate-up" style={{
+      display: 'flex', flexDirection: 'column', gap: 14,
       height: `calc(100vh - var(--topbar-height) - var(--space-8) - var(--space-8))`,
-      minHeight: 0,
+      minHeight: 0, maxWidth: 1440, margin: '0 auto',
     }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', flexShrink: 0 }}>
-        <div>
-          <h1 style={{ fontSize: '20px', fontWeight: 600, margin: 0 }}>Plan de salle</h1>
-          <p style={{ color: 'var(--lk-text-muted)', fontSize: '13px', margin: '4px 0 0' }}>
-            Glissez les tables pour les positionner. Scroll pour zoomer.
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button className="btn btn-secondary btn-sm" onClick={handleAddTable}>
-            <Plus size={14} /> Table
-          </button>
-          {state.dirty && (
-            <button className="btn btn-primary btn-sm" onClick={handleSave} disabled={saving}>
-              {saving ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-              Enregistrer
-            </button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        title="Plan de salle"
+        subtitle="Glissez les tables pour les positionner. Scroll pour zoomer."
+        right={
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <ServiceModePicker date={state.pickerDate} onChange={handleDateChange} />
+            <Button variant="primary" size="md" icon={<Plus size={14} strokeWidth={2.4} />} onClick={handleAddTable}>
+              Table
+            </Button>
+            {state.dirty && (
+              <Button variant="secondary" size="md" icon={saving ? <Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite' }} /> : <Save size={14} />} onClick={handleSave} disabled={saving}>
+                Enregistrer
+              </Button>
+            )}
+          </div>
+        }
+      />
 
       {error && (
-        <div style={{ padding: '8px 12px', background: 'var(--lk-error-muted)', borderRadius: 'var(--radius-sm)', color: 'var(--lk-error)', fontSize: '13px', flexShrink: 0 }}>
+        <div style={{ padding: '8px 12px', background: 'var(--lk-error-tint)', borderRadius: 'var(--radius-sm)', color: 'var(--lk-error)', fontSize: 'var(--fs-sm)', flexShrink: 0 }}>
           {error}
         </div>
       )}
-
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', flexShrink: 0 }}>
-        <RoomTabs
-          rooms={state.rooms}
-          activeRoomId={state.activeRoomId}
-          onSwitch={(id) => dispatch({ type: 'SET_ACTIVE_ROOM', roomId: id })}
-          onAdd={handleAddRoom}
-        />
-        <ServiceModePicker
-          date={state.pickerDate}
-          onChange={handleDateChange}
-        />
-      </div>
 
       {state.selectedIds.size >= 2 && (
         <MergeQuickToolbar
@@ -336,28 +312,70 @@ export default function Floorplan() {
         />
       )}
 
-      <div style={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-        {activeRoom && (
-          <FloorplanCanvas
-            room={activeRoom}
-            tables={roomTables}
-            merges={state.merges.filter(m => m.room_id === state.activeRoomId)}
-            selectedIds={state.selectedIds}
-            onSelect={handleSelect}
-            onDrag={handleDrag}
-            onDragEnd={handleDragEnd}
-            onClearSelection={() => dispatch({ type: 'CLEAR_SELECTION' })}
-          />
-        )}
+      {/* Canvas + side panel */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14, flex: 1, minHeight: 0, alignItems: 'flex-start' }}>
+        <Card padded={false} style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+          {/* Zone tabs inside card header */}
+          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--lk-border)', background: 'var(--lk-surface-1)', flexShrink: 0 }}>
+            <RoomTabs
+              rooms={state.rooms}
+              activeRoomId={state.activeRoomId}
+              onSwitch={(id) => dispatch({ type: 'SET_ACTIVE_ROOM', roomId: id })}
+              onAdd={handleAddRoom}
+            />
+          </div>
 
-        {state.inspectorOpen && selectedTable && (
-          <TableInspector
-            table={selectedTable}
-            onUpdate={handleUpdateTable}
-            onDelete={handleDeleteTable}
-            onClose={() => dispatch({ type: 'CLEAR_SELECTION' })}
-          />
-        )}
+          {/* Canvas */}
+          <div style={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+            {activeRoom && (
+              <FloorplanCanvas
+                room={activeRoom}
+                tables={roomTables}
+                merges={state.merges.filter(m => m.room_id === state.activeRoomId)}
+                selectedIds={state.selectedIds}
+                onSelect={handleSelect}
+                onDrag={handleDrag}
+                onDragEnd={handleDragEnd}
+                onClearSelection={() => dispatch({ type: 'CLEAR_SELECTION' })}
+              />
+            )}
+          </div>
+        </Card>
+
+        {/* Side panel */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+          {/* Zone capacity */}
+          <ZoneCapacityCard tables={roomTables} roomName={activeRoom?.name ?? ''} />
+
+          {/* Table inspector or hint */}
+          {state.inspectorOpen && selectedTable ? (
+            <TableInspector
+              table={selectedTable}
+              onUpdate={handleUpdateTable}
+              onDelete={handleDeleteTable}
+              onClose={() => dispatch({ type: 'CLEAR_SELECTION' })}
+            />
+          ) : (
+            <Card padded={false} style={{ padding: '16px 18px', background: 'var(--lk-surface-1)' }}>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                <Info size={16} style={{ color: 'var(--lk-text-muted)', flexShrink: 0, marginTop: 2 }} />
+                <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-secondary)', lineHeight: 1.5 }}>
+                  Cliquez sur une table pour la modifier. Glissez-la pour la repositionner. <Kbd>Shift</Kbd>+clic pour selectionner plusieurs tables.
+                </div>
+              </div>
+            </Card>
+          )}
+
+          {/* Shortcuts */}
+          <Card padded={false} style={{ padding: '14px 18px' }}>
+            <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 8 }}>Raccourcis</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 'var(--fs-sm)', color: 'var(--lk-text-secondary)' }}>
+              <KbdRow label="Zoom"><Kbd>Scroll</Kbd></KbdRow>
+              <KbdRow label="Deplacer le plan"><Kbd>Clic</Kbd>+<Kbd>Drag</Kbd></KbdRow>
+              <KbdRow label="Multi-selection"><Kbd>Shift</Kbd>+<Kbd>Clic</Kbd></KbdRow>
+            </div>
+          </Card>
+        </div>
       </div>
 
       {state.mergeDialog && (
@@ -395,6 +413,51 @@ export default function Floorplan() {
           onClose={() => setRoomDrawer(null)}
         />
       )}
+    </div>
+  );
+}
+
+function ZoneCapacityCard({ tables, roomName }: { tables: TableItem[]; roomName: string }) {
+  const activeTables = tables.filter(t => t.is_active);
+  const totalSeats = activeTables.reduce((s, t) => s + t.seats, 0);
+
+  return (
+    <Card padded={false} style={{ padding: '16px 18px' }}>
+      <div style={{
+        fontSize: 'var(--fs-xs)',
+        fontWeight: 600,
+        letterSpacing: '0.06em',
+        textTransform: 'uppercase' as const,
+        color: 'var(--lk-text-muted)',
+        marginBottom: 10,
+      }}>
+        Capacite de la zone
+      </div>
+      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
+        <span style={{
+          fontSize: 'var(--fs-2xl)',
+          fontWeight: 700,
+          lineHeight: 1,
+          fontVariantNumeric: 'tabular-nums',
+        }}>
+          {totalSeats}
+        </span>
+        <span style={{ fontSize: 'var(--fs-base)', color: 'var(--lk-text-muted)', fontWeight: 500 }}>
+          couverts
+        </span>
+      </div>
+      <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>
+        {activeTables.length} table{activeTables.length > 1 ? 's' : ''} · {roomName}
+      </div>
+    </Card>
+  );
+}
+
+function KbdRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <span>{label}</span>
+      <span style={{ display: 'flex', gap: 3, alignItems: 'center' }}>{children}</span>
     </div>
   );
 }

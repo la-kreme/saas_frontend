@@ -2,6 +2,9 @@ import { useRef } from 'react';
 import type { TableItem } from '../../lib/types';
 import { tableDisplaySize } from '../../lib/floorplan/geometry';
 
+const PRIMARY = '#ED73A9';
+const BG_CARD = '#FFFFFF';
+
 interface Props {
   table: TableItem;
   selected: boolean;
@@ -69,8 +72,8 @@ export function TableShape({ table, selected, onSelect, onDrag, onDragEnd, svgRe
           cy={cy}
           rx={w / 2}
           ry={h / 2}
-          fill={selected ? '#ED73A9' : '#FFFFFF'}
-          stroke="#ED73A9"
+          fill={selected ? PRIMARY : BG_CARD}
+          stroke={PRIMARY}
           strokeWidth={2}
           opacity={table.is_active ? 1 : 0.4}
         />
@@ -81,8 +84,8 @@ export function TableShape({ table, selected, onSelect, onDrag, onDragEnd, svgRe
           width={w}
           height={h}
           rx={8}
-          fill={selected ? '#ED73A9' : '#FFFFFF'}
-          stroke="#ED73A9"
+          fill={selected ? PRIMARY : BG_CARD}
+          stroke={PRIMARY}
           strokeWidth={2}
           opacity={table.is_active ? 1 : 0.4}
         />

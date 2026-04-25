@@ -14,7 +14,7 @@ export function MergeQuickToolbar({ selectedCount, permanentUnlocked, isServiceM
   return (
     <div style={{
       display: 'flex', gap: '6px', padding: '8px 12px',
-      background: '#FFFFFF', borderRadius: 'var(--radius)',
+      background: 'var(--lk-bg-card)', borderRadius: 'var(--radius)',
       border: '1px solid var(--lk-border)', alignItems: 'center',
     }}>
       <span style={{ fontSize: '12px', color: 'var(--lk-text-muted)', marginRight: '4px' }}>

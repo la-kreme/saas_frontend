@@ -87,6 +87,8 @@ export interface ReservationItem {
   notes?: string;
   occasion?: string;
   created_at: string;
+  table_id?: string;
+  table_merge_id?: string;
 }
 
 export interface SnippetResponse {

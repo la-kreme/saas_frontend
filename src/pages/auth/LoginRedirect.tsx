@@ -1,25 +1,28 @@
 import { useEffect } from 'react';
 
 /**
- * Redirige vers la page login Next.js (koulis.app/login).
+ * Redirige vers la page login Next.js (koulis.ai/login).
  *
- * Full page load pour sortir du SPA et atteindre Next.js.
+ * Cross-domain : koulis.app → koulis.ai (TLDs differents).
  *
  * Mapping des environnements :
  * - localhost:5173  → localhost:3000/login (Next.js dev)
- * - staging/prod    → /login (même domaine, Next.js gère)
+ * - staging.koulis.app → staging.koulis.ai
+ * - koulis.app → koulis.ai
  */
 export default function LoginRedirect() {
   useEffect(() => {
     const hostname = window.location.hostname;
 
+    let loginUrl: string;
     if (hostname === 'localhost') {
-      // En dev, le SPA tourne sur :5173, Next.js sur :3000
-      window.location.href = 'http://localhost:3000/login';
+      loginUrl = 'http://localhost:3000/login';
+    } else if (hostname === 'staging.koulis.app') {
+      loginUrl = 'https://staging.koulis.ai/login';
     } else {
-      // En prod/staging, Next.js est devant sur le même domaine
-      window.location.href = '/login';
+      loginUrl = 'https://koulis.ai/login';
     }
+    window.location.href = loginUrl;
   }, []);
 
   return (
