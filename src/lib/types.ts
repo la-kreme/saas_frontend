@@ -42,9 +42,25 @@ export interface TableItem {
   seats: number;
   is_active: boolean;
   display_order: number;
+  room_id?: string;
+  pos_x: number;
+  pos_y: number;
+  width: number;
+  height: number;
+  shape: 'rect' | 'circle';
+  rotation: number;
 }
 
-export type TableCreate = Pick<TableItem, 'name' | 'seats'> & { display_order?: number };
+export type TableCreate = Pick<TableItem, 'name' | 'seats'> & {
+  display_order?: number;
+  room_id?: string;
+  pos_x?: number;
+  pos_y?: number;
+  width?: number;
+  height?: number;
+  shape?: 'rect' | 'circle';
+  rotation?: number;
+};
 
 export interface OpeningHoursItem {
   id: string;
@@ -216,4 +232,80 @@ export type RestaurantUpdate = Partial<
 
 /** @deprecated Use RestaurantUpdate */
 export type BrunchPlaceUpdate = RestaurantUpdate;
+
+// ─── Floorplan Types ─────────────────────────────────────────────────────────
+
+export interface Room {
+  id: string;
+  restaurant_id: string;
+  name: string;
+  display_order: number;
+  canvas_width: number;
+  canvas_height: number;
+}
+
+export type RoomCreate = Pick<Room, 'name'> & {
+  display_order?: number;
+  canvas_width?: number;
+  canvas_height?: number;
+};
+
+export interface Merge {
+  id: string;
+  room_id: string;
+  member_table_ids: string[];
+  capacity: number;
+  label?: string;
+  scope: 'meal' | 'service' | 'permanent';
+  valid_from?: string;
+  valid_until?: string;
+  created_at: string;
+}
+
+export interface MergeCreatePayload {
+  room_id: string;
+  member_table_ids: string[];
+  label?: string;
+  scope: 'meal' | 'service' | 'permanent';
+  valid_from?: string;
+  valid_until?: string;
+  accept_relocations?: boolean;
+}
+
+export interface MergeConflict {
+  reservation_id: string;
+  from_table_id: string;
+  guest_name: string;
+  time: string;
+}
+
+export interface MergeRelocation {
+  reservation_id: string;
+  from_table_id: string;
+  to_table_id?: string;
+  status?: string;
+}
+
+export interface MergePreview {
+  status: 'ok' | 'ok_with_relocations' | 'blocked';
+  capacity: number;
+  conflicts: MergeConflict[];
+  relocation_plan: MergeRelocation[];
+  unrelocatable: MergeRelocation[];
+}
+
+export interface FloorplanData {
+  rooms: Room[];
+  tables: TableItem[];
+  merges: Merge[];
+  reservations: ReservationItem[];
+}
+
+export interface TableBulkPositionItem {
+  id: string;
+  pos_x: number;
+  pos_y: number;
+  room_id?: string;
+  rotation?: number;
+}
 

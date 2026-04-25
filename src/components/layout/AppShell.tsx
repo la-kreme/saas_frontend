@@ -23,7 +23,7 @@ interface NavItem {
 const NAV_ITEMS: readonly NavItem[] = [
   { to: '/dashboard', label: "Aujourd'hui", icon: LayoutDashboard, end: true },
   { to: '/dashboard/reservations', label: 'Réservations', icon: CalendarDays },
-  { to: '/dashboard/tables', label: 'Tables', icon: LayoutGrid },
+  { to: '/dashboard/floorplan', label: 'Plan de salle', icon: LayoutGrid },
   { to: '/dashboard/hours', label: 'Horaires', icon: Clock },
   { to: '/dashboard/widget', label: 'Mon Widget', icon: Code2 },
   { to: '/dashboard/my-page', label: 'Ma page LK', icon: Globe, requiresLinkedPlace: true },

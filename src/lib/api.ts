@@ -14,6 +14,13 @@ import type {
   ReservationItem,
   SnippetResponse,
   RestaurantSearch,
+  Room,
+  RoomCreate,
+  Merge,
+  MergeCreatePayload,
+  MergePreview,
+  FloorplanData,
+  TableBulkPositionItem,
 } from './types';
 
 // Re-export all types so existing `import { X } from './api'` still work.
@@ -28,6 +35,13 @@ export type {
   SnippetResponse,
   RestaurantSearch,
   BrunchPlaceSearch, // backward-compat alias
+  Room,
+  RoomCreate,
+  Merge,
+  MergeCreatePayload,
+  MergePreview,
+  FloorplanData,
+  TableBulkPositionItem,
 } from './types';
 
 const API_BASE = env.apiUrl;
@@ -208,5 +222,83 @@ export const createRestaurant = (body: { name: string; address?: string; city_na
 
 /** @deprecated Use createRestaurant */
 export const createBrunchPlace = createRestaurant;
+
+// ─── Rooms ───────────────────────────────────────────────────────────────────
+
+export const getRooms = () =>
+  apiFetch<Room[]>('/api/v1/restaurant/me/rooms', {}, true);
+
+export const createRoom = (body: RoomCreate) =>
+  apiFetch<Room>('/api/v1/restaurant/me/rooms', { method: 'POST', body: JSON.stringify(body) }, true);
+
+export const updateRoom = (id: string, body: Partial<Room>) =>
+  apiFetch<Room>(`/api/v1/restaurant/me/rooms/${id}`, { method: 'PATCH', body: JSON.stringify(body) }, true);
+
+export const deleteRoom = (id: string) =>
+  apiFetch(`/api/v1/restaurant/me/rooms/${id}`, { method: 'DELETE' }, true);
+
+// ─── Tables (floorplan extensions) ───────────────────────────────────────────
+
+export const bulkUpdateTablePositions = (updates: TableBulkPositionItem[]) =>
+  apiFetch<{ updated: number }>(
+    '/api/v1/restaurant/me/tables/bulk-positions',
+    { method: 'POST', body: JSON.stringify({ updates }) },
+    true
+  );
+
+// ─── Merges ──────────────────────────────────────────────────────────────────
+
+export const getMerges = (activeOn?: string) =>
+  apiFetch<Merge[]>(
+    `/api/v1/restaurant/me/merges${activeOn ? `?active_on=${activeOn}` : ''}`,
+    {},
+    true
+  );
+
+export const previewMerge = (body: Omit<MergeCreatePayload, 'accept_relocations'>) =>
+  apiFetch<MergePreview>(
+    '/api/v1/restaurant/me/merges/preview',
+    { method: 'POST', body: JSON.stringify(body) },
+    true
+  );
+
+export const createMerge = (body: MergeCreatePayload) =>
+  apiFetch<Merge>(
+    '/api/v1/restaurant/me/merges',
+    { method: 'POST', body: JSON.stringify(body) },
+    true
+  );
+
+export const createMergeWithReservation = (body: {
+  merge: Omit<MergeCreatePayload, 'accept_relocations'>;
+  accept_relocations: boolean;
+  reservation: {
+    reservation_date: string;
+    reservation_time: string;
+    guests: number;
+    guest_first_name: string;
+    guest_last_name: string;
+    guest_email?: string;
+    guest_phone?: string;
+    notes?: string;
+  };
+}) =>
+  apiFetch<{ merge_id: string; reservation_id: string }>(
+    '/api/v1/restaurant/me/merges/with-reservation',
+    { method: 'POST', body: JSON.stringify(body) },
+    true
+  );
+
+export const deleteMerge = (id: string, onConflict: 'fail' | 'cancel' | 'move' = 'fail') =>
+  apiFetch(`/api/v1/restaurant/me/merges/${id}?on_conflict=${onConflict}`, { method: 'DELETE' }, true);
+
+// ─── Floorplan ───────────────────────────────────────────────────────────────
+
+export const getFloorplan = (date?: string) =>
+  apiFetch<FloorplanData>(
+    `/api/v1/restaurant/me/floorplan${date ? `?date=${date}` : ''}`,
+    {},
+    true
+  );
 
 export { WIDGET_BASE };
