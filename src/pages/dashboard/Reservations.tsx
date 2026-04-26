@@ -103,7 +103,7 @@ export default function Reservations() {
     s === '' ? reservations.length : reservations.filter(r => r.status === s).length;
 
   return (
-    <div className="lk-animate-up" style={{ maxWidth: 1440, margin: '0 auto' }}>
+    <div className="lk-animate-up lk-page-container">
       <PageHeader
         title="Reservations"
         subtitle="Historique et gestion de toutes vos reservations."
@@ -114,12 +114,12 @@ export default function Reservations() {
         }
       />
 
-      {error && <p className="form-error" style={{ margin: '12px 0' }}>{error}</p>}
+      {error && <p className="form-error lk-margin-y-sm">{error}</p>}
 
       {/* Filters */}
-      <Card padded={false} style={{ padding: '12px 14px', margin: '20px 0 14px', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+      <Card padded={false} className="lk-resa-filter-card">
         <SearchInput value={search} onChange={setSearch} />
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div className="lk-resa-filter-pills">
           {STATUS_FILTERS.map(f => (
             <FilterPill
               key={f.value}
@@ -131,26 +131,22 @@ export default function Reservations() {
             </FilterPill>
           ))}
         </div>
-        <div style={{ marginLeft: 'auto' }}>
+        <div className="lk-resa-filter-date-wrap">
           <input
             type="date"
             value={filterDate}
             onChange={e => setFilterDate(e.target.value)}
-            style={{
-              height: 34, padding: '0 10px', fontSize: 'var(--fs-sm)',
-              border: '1px solid var(--lk-border)', borderRadius: 'var(--radius)',
-              color: 'var(--lk-text-secondary)', background: 'var(--lk-bg-card)',
-            }}
+            className="lk-resa-date-input"
           />
         </div>
       </Card>
 
       {/* Table */}
-      <Card padded={false} style={{ overflow: 'hidden' }}>
+      <Card padded={false} className="lk-resa-table-card">
         {loading ? (
           <LoadingPlaceholder />
         ) : filtered.length === 0 ? (
-          <div style={{ padding: 48 }}>
+          <div className="lk-resa-empty-wrap">
             <EmptyState
               icon={<CalendarDays size={32} />}
               title="Aucune reservation"
@@ -206,21 +202,13 @@ export default function Reservations() {
 
 function SearchInput({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div style={{
-      flex: '1 1 280px', display: 'flex', alignItems: 'center', gap: 8,
-      padding: '0 12px', height: 36,
-      background: 'var(--lk-surface-2)', border: '1px solid var(--lk-border)',
-      borderRadius: 'var(--radius)',
-    }}>
-      <Search size={14} style={{ color: 'var(--lk-text-muted)', flexShrink: 0 }} />
+    <div className="lk-resa-search">
+      <Search size={14} className="lk-resa-search-icon" />
       <input
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder="Nom, telephone..."
-        style={{
-          flex: 1, border: 'none', outline: 'none', background: 'transparent',
-          fontSize: 'var(--fs-sm)', color: 'var(--lk-text-primary)',
-        }}
+        className="lk-resa-search-input"
       />
     </div>
   );
@@ -228,9 +216,9 @@ function SearchInput({ value, onChange }: { value: string; onChange: (v: string)
 
 function LoadingPlaceholder() {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, gap: 12 }}>
-      <Loader2 size={20} style={{ animation: 'spin 0.7s linear infinite', color: 'var(--lk-primary)' }} />
-      <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>Chargement...</span>
+    <div className="lk-loading-center">
+      <Loader2 size={20} className="lk-spinner" />
+      <span className="lk-text-loading">Chargement...</span>
     </div>
   );
 }
@@ -238,16 +226,9 @@ function LoadingPlaceholder() {
 function TableHeader() {
   const cols = ['Heure', 'Client', 'Pers.', 'Notes', 'Statut', ''];
   return (
-    <div style={{
-      display: 'grid', gridTemplateColumns: RESA_GRID,
-      padding: '10px 18px', background: 'var(--lk-surface-1)',
-      borderBottom: '1px solid var(--lk-border)', gap: 14,
-    }}>
+    <div className="lk-resa-table-header" style={{ gridTemplateColumns: RESA_GRID }}>
       {cols.map(c => (
-        <div key={c} style={{
-          fontSize: 'var(--fs-xs)', fontWeight: 600,
-          color: 'var(--lk-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em',
-        }}>
+        <div key={c} className="lk-resa-col-label">
           {c}
         </div>
       ))}
@@ -262,37 +243,31 @@ function ReservationGridRow({ resa, isLast, actionLoading, onStatusChange }: {
   const fullName = `${resa.guest_first_name} ${resa.guest_last_name}`.trim();
   return (
     <div
+      className="lk-resa-grid-row"
       style={{
-        display: 'grid', gridTemplateColumns: RESA_GRID,
-        padding: '14px 18px', gap: 14, alignItems: 'center',
+        gridTemplateColumns: RESA_GRID,
         borderBottom: isLast ? 'none' : '1px solid var(--lk-border)',
-        transition: 'background var(--transition-fast)', cursor: 'pointer',
       }}
-      onMouseEnter={e => { e.currentTarget.style.background = 'var(--lk-surface-1)'; }}
-      onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
     >
-      <span style={{
-        fontWeight: 700, fontSize: 'var(--fs-sm)',
-        fontVariantNumeric: 'tabular-nums', color: 'var(--lk-primary-strong)',
-      }}>
+      <span className="lk-resa-grid-time">
         {resa.reservation_time.slice(0, 5)}
       </span>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+      <div className="lk-resa-grid-client">
         <Avatar name={fullName || 'A'} size={28} />
-        <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div className="lk-resa-grid-client-info">
+          <div className="lk-resa-grid-client-name">
             {fullName || 'Sans nom'}
           </div>
-          <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--lk-text-muted)' }}>{resa.guest_email}</div>
+          <div className="lk-resa-grid-client-email">{resa.guest_email}</div>
         </div>
       </div>
 
-      <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--lk-text-secondary)' }}>
-        <Users size={12} strokeWidth={2} style={{ color: 'var(--lk-text-muted)' }} />{resa.party_size}
+      <span className="lk-resa-grid-pax">
+        <Users size={12} strokeWidth={2} className="lk-icon-muted" />{resa.party_size}
       </span>
 
-      <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+      <div className="lk-resa-grid-notes">
         {resa.notes || '—'}
       </div>
 
@@ -300,7 +275,7 @@ function ReservationGridRow({ resa, isLast, actionLoading, onStatusChange }: {
 
       <div>
         {actionLoading ? (
-          <Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite', color: 'var(--lk-text-muted)' }} />
+          <Loader2 size={14} className="lk-spinner--muted" />
         ) : (
           <RowActions resa={resa} onStatusChange={onStatusChange} />
         )}
@@ -314,12 +289,12 @@ function RowActions({ resa, onStatusChange }: {
 }) {
   if (resa.status === 'pending') {
     return (
-      <div style={{ display: 'flex', gap: 4 }}>
+      <div className="lk-resa-row-actions">
         <IconBtn size={26} title="Confirmer" onClick={() => onStatusChange(resa.id, 'confirmed')}>
-          <Check size={13} style={{ color: 'var(--lk-success)' }} />
+          <Check size={13} className="lk-icon-success" />
         </IconBtn>
         <IconBtn size={26} title="Annuler" onClick={() => onStatusChange(resa.id, 'cancelled')}>
-          <X size={13} style={{ color: 'var(--lk-error)' }} />
+          <X size={13} className="lk-icon-error" />
         </IconBtn>
       </div>
     );
@@ -327,11 +302,11 @@ function RowActions({ resa, onStatusChange }: {
   if (resa.status === 'confirmed') {
     return (
       <IconBtn size={26} title="Annuler" onClick={() => onStatusChange(resa.id, 'cancelled')}>
-        <X size={13} style={{ color: 'var(--lk-error)' }} />
+        <X size={13} className="lk-icon-error" />
       </IconBtn>
     );
   }
-  return <MoreHorizontal size={16} style={{ color: 'var(--lk-text-muted)' }} />;
+  return <MoreHorizontal size={16} className="lk-icon-muted" />;
 }
 
 function MobileResaCard({ resa, isLast, actionLoading, onStatusChange }: {
@@ -340,28 +315,28 @@ function MobileResaCard({ resa, isLast, actionLoading, onStatusChange }: {
 }) {
   const fullName = `${resa.guest_first_name} ${resa.guest_last_name}`.trim();
   return (
-    <div style={{
-      padding: 16, display: 'flex', flexDirection: 'column', gap: 8,
-      borderBottom: isLast ? 'none' : '1px solid var(--lk-border)',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+    <div
+      className="lk-resa-mobile-card"
+      style={{ borderBottom: isLast ? 'none' : '1px solid var(--lk-border)' }}
+    >
+      <div className="lk-resa-mobile-top">
+        <div className="lk-resa-mobile-left">
           <Avatar name={fullName || 'A'} size={32} />
           <div>
-            <div style={{ fontSize: 'var(--fs-md)', fontWeight: 600 }}>{fullName || 'Sans nom'}</div>
-            <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>
+            <div className="lk-resa-mobile-name">{fullName || 'Sans nom'}</div>
+            <div className="lk-resa-mobile-meta">
               {resa.party_size} pers. · {new Date(resa.reservation_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} a {resa.reservation_time.slice(0, 5)}
             </div>
           </div>
         </div>
         <StatusPill status={resa.status} />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <span style={{ fontSize: 'var(--fs-xs)', fontFamily: 'var(--font-mono)', color: 'var(--lk-text-muted)' }}>
+      <div className="lk-resa-mobile-bottom">
+        <span className="lk-resa-mobile-code">
           #{resa.confirmation_code}
         </span>
         {actionLoading ? (
-          <Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite', color: 'var(--lk-text-muted)' }} />
+          <Loader2 size={14} className="lk-spinner--muted" />
         ) : (
           <RowActions resa={resa} onStatusChange={onStatusChange} />
         )}
@@ -377,31 +352,28 @@ function CreateModal({ newResa, setNewResa, createLoading, createError, onSubmit
   onSubmit: (e: React.FormEvent) => void; onClose: () => void;
 }) {
   return createPortal(
-    <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 9999,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <Card style={{ width: '90%', maxWidth: 500, maxHeight: '90vh', overflowY: 'auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-          <h2 style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, margin: 0 }}>
+    <div className="lk-resa-modal-overlay">
+      <Card className="lk-resa-modal-card">
+        <div className="lk-resa-modal-header">
+          <h2 className="lk-resa-modal-title">
             Ajouter une reservation
           </h2>
           <IconBtn onClick={onClose}><X size={16} /></IconBtn>
         </div>
 
-        {createError && <p className="form-error" style={{ marginBottom: 16 }}>{createError}</p>}
+        {createError && <p className="form-error lk-resa-modal-error">{createError}</p>}
 
-        <form onSubmit={onSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <form onSubmit={onSubmit} className="lk-resa-modal-form">
           <div className="form-group">
             <label className="form-label">Date</label>
             <input type="date" required className="form-input" value={newResa.date} onChange={e => setNewResa({ ...newResa, date: e.target.value })} />
           </div>
-          <div style={{ display: 'flex', gap: 12 }}>
-            <div className="form-group" style={{ flex: 1 }}>
+          <div className="lk-flex-row">
+            <div className="form-group lk-flex-1">
               <label className="form-label">Heure</label>
               <input type="time" required className="form-input" value={newResa.time} onChange={e => setNewResa({ ...newResa, time: e.target.value })} />
             </div>
-            <div className="form-group" style={{ flex: 1 }}>
+            <div className="form-group lk-flex-1">
               <label className="form-label">Couverts</label>
               <input type="number" required min={1} max={50} className="form-input" value={newResa.guests} onChange={e => setNewResa({ ...newResa, guests: parseInt(e.target.value) || 2 })} />
             </div>
@@ -423,7 +395,7 @@ function CreateModal({ newResa, setNewResa, createLoading, createError, onSubmit
             <textarea className="form-input" rows={2} placeholder="Allergies, chaise bebe..." value={newResa.notes} onChange={e => setNewResa({ ...newResa, notes: e.target.value })} />
           </div>
 
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 8 }}>
+          <div className="lk-actions-row--end">
             <Button variant="ghost" type="button" onClick={onClose} disabled={createLoading}>Annuler</Button>
             <Button variant="primary" type="submit" icon={createLoading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} disabled={createLoading}>
               Creer

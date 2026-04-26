@@ -46,7 +46,7 @@ export default function Today() {
     });
 
   return (
-    <div className="lk-animate-up" style={{ maxWidth: 1440, margin: '0 auto' }}>
+    <div className="lk-animate-up lk-page-container">
       <PageHeader
         eyebrow={fmtDate(today)}
         title="Aujourd'hui"
@@ -58,46 +58,36 @@ export default function Today() {
       />
 
       {/* KPI strip */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
-        gap: 14,
-        margin: '24px 0',
-      }}>
+      <div className="lk-today-kpi-grid">
         <KpiCard
           label="Reservations"
           value={reservations.length}
-          icon={<Calendar size={16} strokeWidth={2} style={{ color: 'var(--lk-info)' }} />}
+          icon={<Calendar size={16} strokeWidth={2} className="lk-icon-info" />}
           tint="var(--lk-info-tint)"
         />
         <KpiCard
           label="Confirmees"
           value={confirmed}
-          icon={<CheckCircle2 size={16} strokeWidth={2} style={{ color: 'var(--lk-success)' }} />}
+          icon={<CheckCircle2 size={16} strokeWidth={2} className="lk-icon-success" />}
           tint="var(--lk-success-tint)"
         />
         <KpiCard
           label="En attente"
           value={pending}
-          icon={<Clock size={16} strokeWidth={2} style={{ color: 'var(--lk-warning)' }} />}
+          icon={<Clock size={16} strokeWidth={2} className="lk-icon-warning" />}
           tint="var(--lk-warning-tint)"
           hot={pending > 0}
         />
         <KpiCard
           label="Couverts"
           value={totalCovers}
-          icon={<Users size={16} strokeWidth={2} style={{ color: 'var(--lk-primary-strong)' }} />}
+          icon={<Users size={16} strokeWidth={2} className="lk-icon-primary" />}
           tint="var(--lk-primary-soft)"
         />
       </div>
 
       {/* Main content: planning + sidebar */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: '1fr 320px',
-        gap: 20,
-        alignItems: 'flex-start',
-      }}>
+      <div className="lk-today-main-grid">
         {/* Planning du jour */}
         <PlanningCard
           reservations={reservations}
@@ -109,7 +99,7 @@ export default function Today() {
         />
 
         {/* Sidebar column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <div className="lk-today-sidebar-col">
           <UpsellCard />
         </div>
       </div>
@@ -129,18 +119,10 @@ const VIEW_TABS: { id: ViewMode; label: string }[] = [
 
 function TabBtn({ active, children, onClick }: { active: boolean; children: React.ReactNode; onClick: () => void }) {
   return (
-    <button onClick={onClick} style={{
-      padding: '5px 11px',
-      fontSize: 'var(--fs-sm)',
-      fontWeight: 500,
-      borderRadius: 'var(--radius-full)',
-      background: active ? 'var(--lk-primary-tint)' : 'transparent',
-      color: active ? 'var(--lk-primary-strong)' : 'var(--lk-text-muted)',
-      border: '1px solid',
-      borderColor: active ? 'rgba(237, 115, 169, 0.18)' : 'transparent',
-      cursor: 'pointer',
-      transition: 'all var(--transition-fast)',
-    }}>
+    <button
+      onClick={onClick}
+      className={active ? 'lk-today-tab lk-today-tab--active' : 'lk-today-tab'}
+    >
       {children}
     </button>
   );
@@ -165,9 +147,9 @@ function PlanningCard({
 
   if (loading) {
     return (
-      <Card style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 48, gap: 12 }}>
-        <Loader2 size={20} style={{ animation: 'spin 0.7s linear infinite', color: 'var(--lk-primary)' }} />
-        <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>Chargement...</span>
+      <Card className="lk-loading-center">
+        <Loader2 size={20} className="lk-spinner" />
+        <span className="lk-text-loading">Chargement...</span>
       </Card>
     );
   }
@@ -175,7 +157,7 @@ function PlanningCard({
   if (error) {
     return (
       <Card>
-        <p style={{ color: 'var(--lk-error)', fontSize: 'var(--fs-sm)' }}>{error}</p>
+        <p className="lk-text-error">{error}</p>
       </Card>
     );
   }
@@ -196,18 +178,12 @@ function PlanningCard({
   );
 
   return (
-    <Card padded={false} style={{ overflow: 'hidden' }}>
-      <div style={{
-        padding: '18px 24px',
-        borderBottom: '1px solid var(--lk-border)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-      }}>
-        <h2 style={{ fontSize: 'var(--fs-md)', fontWeight: 600, margin: 0 }}>
+    <Card padded={false} className="lk-today-planning-card">
+      <div className="lk-today-planning-header">
+        <h2 className="lk-today-planning-title">
           Planning du jour
         </h2>
-        <div style={{ display: 'flex', gap: 6 }}>
+        <div className="lk-today-planning-tabs">
           {VIEW_TABS.map(t => (
             <TabBtn key={t.id} active={viewMode === t.id} onClick={() => setViewMode(t.id)}>
               {t.label}
@@ -249,7 +225,7 @@ function TimelineView({ reservations, hours, today }: { reservations: Reservatio
 
   if (todayServices.length === 0) {
     return (
-      <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--lk-text-muted)', fontSize: 'var(--fs-sm)' }}>
+      <div className="lk-today-timeline-empty">
         Aucun service configure pour aujourd'hui.
       </div>
     );
@@ -266,17 +242,13 @@ function TimelineView({ reservations, hours, today }: { reservations: Reservatio
 
         return (
           <div key={svc.name}>
-            <div style={{
-              padding: '12px 24px',
-              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-              background: 'var(--lk-surface-1)', borderTop: '1px solid var(--lk-border)',
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 'var(--fs-base)' }}>{svc.icon}</span>
-                <span style={{ fontSize: 'var(--fs-sm)', fontWeight: 600 }}>{svc.name}</span>
-                <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>· {svc.from}h – {svc.to}h</span>
+            <div className="lk-today-svc-header">
+              <div className="lk-today-svc-header-left">
+                <span className="lk-today-svc-icon">{svc.icon}</span>
+                <span className="lk-today-svc-name">{svc.name}</span>
+                <span className="lk-today-svc-hours">· {svc.from}h – {svc.to}h</span>
               </div>
-              <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>
+              <span className="lk-today-svc-stats">
                 {svcResas.length} resa · {svcCovers} couv.
               </span>
             </div>
@@ -295,41 +267,27 @@ function TimelineTrack({ svc, reservations }: { svc: ServiceBlock; reservations:
   for (let h = svc.from; h < svc.to; h++) hours.push(h);
 
   return (
-    <div style={{ padding: '16px 24px 22px' }}>
+    <div className="lk-today-track-wrap">
       {/* Hour scale */}
-      <div style={{ position: 'relative', height: 18, marginBottom: 8 }}>
+      <div className="lk-today-track-scale">
         {hours.map((h, i) => (
-          <div key={h} style={{
-            position: 'absolute', left: `${(i / hours.length) * 100}%`, top: 0,
-            fontSize: 'var(--fs-xs)', color: 'var(--lk-text-muted)', fontVariantNumeric: 'tabular-nums',
-          }}>
+          <div key={h} className="lk-today-track-hour" style={{ left: `${(i / hours.length) * 100}%` }}>
             {h}h
           </div>
         ))}
       </div>
 
       {/* Track */}
-      <div style={{
-        position: 'relative',
-        height: reservations.length === 0 ? 60 : Math.max(60, reservations.length * 38 + 12),
-        background: 'var(--lk-surface-1)',
-        border: '1px dashed var(--lk-border)',
-        borderRadius: 'var(--radius)',
-        overflow: 'hidden',
-      }}>
+      <div
+        className="lk-today-track"
+        style={{ height: reservations.length === 0 ? 60 : Math.max(60, reservations.length * 38 + 12) }}
+      >
         {hours.map((h, i) => i > 0 && (
-          <div key={h} style={{
-            position: 'absolute', left: `${(i / hours.length) * 100}%`,
-            top: 0, bottom: 0, width: 1, background: 'var(--lk-border)',
-          }} />
+          <div key={h} className="lk-today-track-divider" style={{ left: `${(i / hours.length) * 100}%` }} />
         ))}
 
         {reservations.length === 0 ? (
-          <div style={{
-            position: 'absolute', inset: 0,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)',
-          }}>
+          <div className="lk-today-track-empty">
             Aucune reservation sur ce service
           </div>
         ) : (
@@ -346,39 +304,25 @@ function TimelineTrack({ svc, reservations }: { svc: ServiceBlock; reservations:
               : { bg: '#fff', border: '1px dashed var(--lk-border)', accent: 'var(--lk-text-muted)' };
 
             return (
-              <div key={r.id} style={{
-                position: 'absolute',
-                left: `${left}%`,
-                top,
-                width: `max(160px, ${width}%)`,
-                height: 30,
-                background: tone.bg,
-                border: tone.border,
-                borderRadius: 'var(--radius)',
-                paddingLeft: 10, paddingRight: 10,
-                display: 'flex', alignItems: 'center', gap: 8,
-                overflow: 'hidden',
-                boxShadow: 'var(--shadow-xs)',
-              }}>
-                <div style={{ width: 3, height: 18, background: tone.accent, borderRadius: 2, flexShrink: 0 }} />
-                <span style={{
-                  fontSize: 'var(--fs-xs)', fontWeight: 700,
-                  fontVariantNumeric: 'tabular-nums', color: 'var(--lk-text-primary)', flexShrink: 0,
-                }}>
+              <div
+                key={r.id}
+                className="lk-today-track-chip"
+                style={{
+                  left: `${left}%`,
+                  top,
+                  width: `max(160px, ${width}%)`,
+                  background: tone.bg,
+                  border: tone.border,
+                }}
+              >
+                <div className="lk-today-track-chip-accent" style={{ background: tone.accent }} />
+                <span className="lk-today-track-chip-time">
                   {r.reservation_time.slice(0, 5)}
                 </span>
-                <span style={{
-                  fontSize: 'var(--fs-xs)', fontWeight: 500,
-                  color: 'var(--lk-text-secondary)',
-                  overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1,
-                }}>
+                <span className="lk-today-track-chip-name">
                   {fullName || 'Sans nom'}
                 </span>
-                <span style={{
-                  display: 'inline-flex', alignItems: 'center', gap: 3,
-                  fontSize: 'var(--fs-xs)', color: 'var(--lk-text-muted)',
-                  fontWeight: 600, flexShrink: 0,
-                }}>
+                <span className="lk-today-track-chip-pax">
                   <Users size={10} strokeWidth={2} />{r.party_size}
                 </span>
               </div>
@@ -409,20 +353,16 @@ function TableView({ reservations, tables }: { reservations: ReservationItem[]; 
 
   if (activeTables.length === 0) {
     return (
-      <div style={{ padding: '40px 24px', textAlign: 'center', color: 'var(--lk-text-muted)', fontSize: 'var(--fs-sm)' }}>
+      <div className="lk-today-timeline-empty">
         Aucune table configuree. Rendez-vous dans le plan de salle.
       </div>
     );
   }
 
   return (
-    <div style={{ padding: '20px 24px' }}>
+    <div className="lk-today-tableview-wrap">
       {/* Mini grid of tables */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))',
-        gap: 12,
-      }}>
+      <div className="lk-today-tableview-grid">
         {activeTables.map(table => {
           const tableResas = resasByTable.get(table.id) ?? [];
           const hasResa = tableResas.length > 0;
@@ -434,70 +374,41 @@ function TableView({ reservations, tables }: { reservations: ReservationItem[]; 
             : 'var(--lk-success)';
 
           return (
-            <div key={table.id} style={{
-              padding: '14px 16px',
-              borderRadius: 'var(--radius)',
-              border: '1px solid',
-              borderColor: hasResa ? 'rgba(237, 115, 169, 0.25)' : 'var(--lk-border)',
-              background: hasResa ? 'var(--lk-primary-tint)' : 'var(--lk-bg-card)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-            }}>
+            <div
+              key={table.id}
+              className={hasResa ? 'lk-today-table-card lk-today-table-card--booked' : 'lk-today-table-card lk-today-table-card--free'}
+            >
               {/* Table header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <span style={{
-                    width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                    background: statusColor,
-                  }} />
-                  <span style={{
-                    fontSize: 'var(--fs-base)',
-                    fontWeight: 600,
-                  }}>
+              <div className="lk-today-table-header">
+                <div className="lk-today-table-header-left">
+                  <span className="lk-today-table-status-dot" style={{ background: statusColor }} />
+                  <span className="lk-today-table-name">
                     {table.name}
                   </span>
                 </div>
-                <span style={{
-                  fontSize: 'var(--fs-xs)', color: 'var(--lk-text-muted)',
-                  fontWeight: 500,
-                }}>
+                <span className="lk-today-table-seats">
                   {table.seats} pl.
                 </span>
               </div>
 
               {/* Reservations on this table */}
               {tableResas.length === 0 ? (
-                <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--lk-text-muted)' }}>
+                <span className="lk-today-table-free">
                   Libre
                 </span>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div className="lk-today-table-resas">
                   {tableResas.map(r => {
                     const name = `${r.guest_first_name} ${r.guest_last_name}`.trim();
                     return (
-                      <div key={r.id} style={{
-                        display: 'flex', alignItems: 'center', gap: 6,
-                        padding: '4px 8px',
-                        background: 'var(--lk-bg-card)',
-                        borderRadius: 'var(--radius-sm)',
-                        fontSize: 'var(--fs-xs)',
-                      }}>
-                        <span style={{
-                          fontWeight: 700,
-                          fontVariantNumeric: 'tabular-nums',
-                          color: 'var(--lk-primary-strong)',
-                          flexShrink: 0,
-                        }}>
+                      <div key={r.id} className="lk-today-table-resa-row">
+                        <span className="lk-today-table-resa-time">
                           {r.reservation_time.slice(0, 5)}
                         </span>
-                        <span style={{
-                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-                          flex: 1, color: 'var(--lk-text-secondary)',
-                        }}>
+                        <span className="lk-today-table-resa-name">
                           {name || 'Sans nom'}
                         </span>
-                        <span style={{ color: 'var(--lk-text-muted)', flexShrink: 0 }}>
+                        <span className="lk-today-table-resa-pax">
                           {r.party_size}p
                         </span>
                       </div>
@@ -512,12 +423,8 @@ function TableView({ reservations, tables }: { reservations: ReservationItem[]; 
 
       {/* Unassigned reservations */}
       {unassigned.length > 0 && (
-        <div style={{ marginTop: 16 }}>
-          <div style={{
-            fontSize: 'var(--fs-xs)', fontWeight: 600,
-            color: 'var(--lk-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em',
-            marginBottom: 8,
-          }}>
+        <div className="lk-today-unassigned">
+          <div className="lk-today-unassigned-label">
             Non assignees · {unassigned.length}
           </div>
           {unassigned.map(resa => <ReservationRow key={resa.id} resa={resa} />)}
@@ -533,65 +440,27 @@ function ReservationRow({ resa }: { resa: ReservationItem }) {
   const fullName = `${resa.guest_first_name} ${resa.guest_last_name}`.trim();
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: 14,
-      padding: '12px 24px',
-      borderBottom: '1px solid var(--lk-border)',
-      transition: 'background var(--transition-fast)',
-      cursor: 'pointer',
-    }}
-    onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--lk-surface-2)'; }}
-    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-    >
+    <div className="lk-today-resa-row">
       {/* Time */}
-      <span style={{
-        minWidth: 48,
-        fontSize: 'var(--fs-sm)',
-        fontWeight: 700,
-        fontVariantNumeric: 'tabular-nums',
-        color: 'var(--lk-primary-strong)',
-      }}>
+      <span className="lk-today-resa-time">
         {resa.reservation_time.slice(0, 5)}
       </span>
 
       {/* Avatar + name */}
       <Avatar name={fullName || 'A'} size={32} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{
-          fontSize: 'var(--fs-base)',
-          fontWeight: 500,
-          color: 'var(--lk-text-primary)',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-        }}>
+      <div className="lk-today-resa-info">
+        <div className="lk-today-resa-name">
           {fullName || 'Sans nom'}
         </div>
         {resa.notes && (
-          <div style={{
-            fontSize: 'var(--fs-xs)',
-            color: 'var(--lk-text-muted)',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}>
+          <div className="lk-today-resa-notes">
             {resa.notes}
           </div>
         )}
       </div>
 
       {/* Party size */}
-      <span style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 4,
-        fontSize: 'var(--fs-sm)',
-        color: 'var(--lk-text-muted)',
-        fontWeight: 600,
-        flexShrink: 0,
-      }}>
+      <span className="lk-today-resa-pax">
         <Users size={12} strokeWidth={2} />
         {resa.party_size}
       </span>
@@ -606,30 +475,14 @@ function ReservationRow({ resa }: { resa: ReservationItem }) {
 
 function UpsellCard() {
   return (
-    <Card
-      style={{
-        background: 'linear-gradient(160deg, var(--lk-primary-soft) 0%, #FFFFFF 65%)',
-        border: '1px solid rgba(237, 115, 169, 0.25)',
-        overflow: 'hidden',
-      }}
-    >
-      <Badge tone="primary" icon={<Sparkles size={11} strokeWidth={2} />} style={{ marginBottom: 10 }}>
+    <Card className="lk-today-upsell-card">
+      <Badge tone="primary" icon={<Sparkles size={11} strokeWidth={2} />} className="lk-today-upsell-badge">
         Premium
       </Badge>
-      <h4 style={{
-        fontSize: 'var(--fs-base)',
-        fontWeight: 600,
-        marginBottom: 6,
-        lineHeight: 1.3,
-      }}>
+      <h4 className="lk-today-upsell-title">
         Activez l'agent IA telephonique
       </h4>
-      <p style={{
-        fontSize: 'var(--fs-sm)',
-        color: 'var(--lk-text-secondary)',
-        marginBottom: 12,
-        lineHeight: 1.5,
-      }}>
+      <p className="lk-today-upsell-desc">
         Un agent decroche les appels 24/7 et confirme les reservations a votre place.
       </p>
       <Button variant="primary" size="sm" iconRight={<ArrowRight size={12} strokeWidth={2.4} />}>

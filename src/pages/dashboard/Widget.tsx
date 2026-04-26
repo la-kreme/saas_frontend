@@ -100,7 +100,7 @@ export default function Widget() {
   }, [reserveUrl]);
 
   return (
-    <div className="lk-animate-up" style={{ maxWidth: 1440, margin: '0 auto' }}>
+    <div className="lk-animate-up lk-page-container">
       {/* Test modal */}
       {testModalOpen && <TestModal
         restaurantName={restaurantName}
@@ -120,9 +120,9 @@ export default function Widget() {
         }
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 18, alignItems: 'flex-start' }}>
+      <div className="lk-widget-grid">
         {/* Left */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="lk-widget-left-col">
           <ShareLinkCard
             reserveUrl={reserveUrl}
             copiedLink={copiedLink}
@@ -143,11 +143,11 @@ export default function Widget() {
         </div>
 
         {/* Right */}
-        <Card padded={false} style={{ padding: '18px 20px' }}>
-          <div style={{ fontSize: 'var(--fs-base)', fontWeight: 600, marginBottom: 4 }}>
+        <Card padded={false} className="lk-widget-directory-card">
+          <div className="lk-widget-directory-title">
             Annuaire La Kreme
           </div>
-          <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)', marginBottom: 14 }}>
+          <div className="lk-widget-directory-desc">
             Afficher sur lakreme.fr pour que les visiteurs reservent depuis votre fiche.
           </div>
           <label className="toggle">
@@ -166,39 +166,30 @@ function ShareLinkCard({ reserveUrl, copiedLink, onCopy }: {
   reserveUrl: string; copiedLink: boolean; onCopy: () => void;
 }) {
   return (
-    <Card padded={false} style={{
-      padding: '18px 20px',
-      background: 'linear-gradient(135deg, white 0%, var(--lk-primary-soft) 130%)',
-      border: '1px solid rgba(237, 115, 169, 0.25)',
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <Link2 size={15} style={{ color: 'var(--lk-primary-strong)' }} />
-        <span style={{ fontSize: 'var(--fs-base)', fontWeight: 600 }}>
+    <Card padded={false} className="lk-widget-share-card">
+      <div className="lk-widget-share-header">
+        <Link2 size={15} className="lk-widget-share-icon" />
+        <span className="lk-widget-share-title">
           Votre page de reservation
         </span>
       </div>
-      <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-secondary)', marginBottom: 14, lineHeight: 1.5 }}>
+      <p className="lk-widget-share-desc">
         Mettez ce lien dans votre bio Instagram, Google Maps, votre site web — ou creez un bouton "Reserver" qui pointe dessus.
       </p>
       {reserveUrl ? (
         <>
-          <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
+          <div className="lk-widget-share-url-row">
             <input
               value={reserveUrl}
               readOnly
               onClick={e => (e.target as HTMLInputElement).select()}
-              style={{
-                flex: 1, height: 38, padding: '0 12px',
-                fontSize: 'var(--fs-sm)', fontFamily: 'var(--font-mono)',
-                border: '1px solid var(--lk-border)', borderRadius: 'var(--radius)',
-                background: 'white', color: 'var(--lk-primary-strong)', outline: 'none',
-              }}
+              className="lk-widget-share-url-input"
             />
             <Button variant="primary" size="md" icon={copiedLink ? <Check size={13} /> : <Copy size={13} />} onClick={onCopy}>
               {copiedLink ? 'Copie' : 'Copier'}
             </Button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>
+          <div className="lk-widget-share-actions">
             <Button variant="sky" size="sm" icon={<ExternalLink size={12} />} onClick={() => window.open(reserveUrl, '_blank')}>
               Ouvrir la page
             </Button>
@@ -206,11 +197,7 @@ function ShareLinkCard({ reserveUrl, copiedLink, onCopy }: {
           </div>
         </>
       ) : (
-        <div style={{
-          padding: 16, borderRadius: 'var(--radius)',
-          background: 'var(--lk-surface-2)', color: 'var(--lk-text-muted)',
-          fontSize: 'var(--fs-sm)', textAlign: 'center',
-        }}>
+        <div className="lk-widget-share-placeholder">
           Completez l'onboarding pour obtenir votre lien.
         </div>
       )}
@@ -225,29 +212,28 @@ function AppearanceCard({ accentColor, onColorChange, messageFr, messageEn, onMe
   onSave: () => void; saving: boolean; error: string;
 }) {
   return (
-    <Card padded={false} style={{ padding: '18px 20px' }}>
-      <div style={{ fontSize: 'var(--fs-base)', fontWeight: 600, marginBottom: 14 }}>
+    <Card padded={false} className="lk-widget-appearance-card">
+      <div className="lk-widget-appearance-title">
         Apparence
       </div>
 
       <FieldLabel label="Couleur principale">
-        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+        <div className="lk-widget-color-swatches">
           {ACCENT_PRESETS.map(c => (
             <button
               key={c}
               onClick={() => onColorChange(c)}
+              className={accentColor === c ? 'lk-widget-color-swatch lk-widget-color-swatch--selected' : 'lk-widget-color-swatch lk-widget-color-swatch--unselected'}
               style={{
-                width: 30, height: 30, borderRadius: '50%', background: c,
-                border: accentColor === c ? '3px solid white' : '3px solid transparent',
-                boxShadow: accentColor === c ? `0 0 0 2px ${c}` : 'var(--shadow-xs)',
-                cursor: 'pointer', transition: 'all var(--transition-fast)',
+                background: c,
+                boxShadow: accentColor === c ? `0 0 0 2px ${c}` : undefined,
               }}
             />
           ))}
         </div>
       </FieldLabel>
 
-      <div style={{ marginTop: 14 }}>
+      <div className="lk-widget-msg-section">
         <FieldLabel label="Message de bienvenue (FR)">
           <textarea
             value={messageFr}
@@ -255,11 +241,11 @@ function AppearanceCard({ accentColor, onColorChange, messageFr, messageEn, onMe
             rows={2}
             maxLength={200}
             placeholder="Bienvenue ! Reservez votre table..."
-            style={{ ...inputStyle, height: 'auto', padding: '8px 10px', resize: 'none' }}
+            className="lk-hours-input lk-widget-textarea"
           />
         </FieldLabel>
       </div>
-      <div style={{ marginTop: 10 }}>
+      <div className="lk-widget-msg-section--sm">
         <FieldLabel label="Message de bienvenue (EN)">
           <textarea
             value={messageEn}
@@ -267,14 +253,14 @@ function AppearanceCard({ accentColor, onColorChange, messageFr, messageEn, onMe
             rows={2}
             maxLength={200}
             placeholder="Welcome! Book your table..."
-            style={{ ...inputStyle, height: 'auto', padding: '8px 10px', resize: 'none' }}
+            className="lk-hours-input lk-widget-textarea"
           />
         </FieldLabel>
       </div>
 
-      {error && <p style={{ color: 'var(--lk-error)', fontSize: 'var(--fs-sm)', marginTop: 8 }}>{error}</p>}
+      {error && <p className="lk-widget-error">{error}</p>}
 
-      <div style={{ marginTop: 14 }}>
+      <div className="lk-widget-save-wrap">
         <Button variant="primary" size="sm" onClick={onSave} disabled={saving}>
           {saving ? 'Sauvegarde...' : "Appliquer l'apparence"}
         </Button>
@@ -292,28 +278,17 @@ function TestModal({ restaurantName, publicToken, onClose }: {
     <div
       role="dialog"
       aria-modal="true"
-      style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-      }}
+      className="lk-widget-modal-overlay"
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <Card style={{
-        width: '100%', maxWidth: 500, maxHeight: '90vh',
-        overflow: 'hidden', display: 'flex', flexDirection: 'column',
-        padding: 0, boxShadow: 'var(--shadow-xl)',
-      }}>
-        <div style={{
-          padding: '16px 20px', borderBottom: '1px solid var(--lk-border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        }}>
-          <span style={{ fontWeight: 700, fontSize: 'var(--fs-md)' }}>
+      <Card className="lk-widget-modal-card">
+        <div className="lk-widget-modal-header">
+          <span className="lk-widget-modal-title">
             Experience client — {restaurantName}
           </span>
           <IconBtn onClick={onClose}><X size={16} /></IconBtn>
         </div>
-        <div style={{ flex: 1, overflowY: 'auto', padding: '16px 20px' }}>
+        <div className="lk-widget-modal-body">
           <WidgetPreview restaurantId={publicToken} lang="fr" preview={false} showControls minHeight={520} />
         </div>
       </Card>
@@ -324,18 +299,11 @@ function TestModal({ restaurantName, publicToken, onClose }: {
 
 function FieldLabel({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 500, color: 'var(--lk-text-secondary)' }}>
+    <label className="lk-field-label">
+      <span className="lk-field-label-text">
         {label}
       </span>
       {children}
     </label>
   );
 }
-
-const inputStyle: React.CSSProperties = {
-  height: 34, padding: '0 10px', fontSize: 'var(--fs-sm)',
-  border: '1px solid var(--lk-border)', borderRadius: 'var(--radius-sm)',
-  background: 'var(--lk-bg-card)', outline: 'none', color: 'var(--lk-text-primary)',
-  width: '100%', fontFamily: 'inherit',
-};

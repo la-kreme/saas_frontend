@@ -11,36 +11,16 @@ interface EmptyStateProps {
 
 export function EmptyState({ icon, title, description, actionLabel, onAction }: EmptyStateProps) {
   return (
-    <Card
-      style={{
-        padding: 40,
-        textAlign: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 12,
-        background: 'linear-gradient(135deg, var(--lk-primary-soft) 0%, var(--lk-secondary-tint) 100%)',
-      }}
-    >
-      <div style={{ color: 'var(--lk-primary)', marginBottom: 4 }}>{icon}</div>
-      <h2 style={{
-        fontSize: 'var(--fs-lg)',
-        fontWeight: 600,
-        color: 'var(--lk-text-primary)',
-        margin: 0,
-      }}>
+    <Card padded={false} className="lk-empty">
+      <div className="lk-empty__icon">{icon}</div>
+      <h2 className="lk-empty__title">
         {title}
       </h2>
-      <p style={{
-        fontSize: 'var(--fs-base)',
-        color: 'var(--lk-text-secondary)',
-        maxWidth: 360,
-        margin: 0,
-      }}>
+      <p className="lk-empty__desc">
         {description}
       </p>
       {actionLabel && onAction && (
-        <Button variant="primary" size="md" onClick={onAction} style={{ marginTop: 8 }}>
+        <Button variant="primary" size="md" onClick={onAction} className="lk-empty__action">
           {actionLabel}
         </Button>
       )}

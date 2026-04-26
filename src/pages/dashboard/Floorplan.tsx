@@ -265,30 +265,26 @@ export default function Floorplan() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 400, gap: 12 }}>
-        <Loader2 size={24} style={{ animation: 'spin 0.7s linear infinite', color: 'var(--lk-primary)' }} />
-        <span style={{ color: 'var(--lk-text-muted)', fontSize: 'var(--fs-sm)' }}>Chargement du plan de salle...</span>
+      <div className="lk-loading-center--sm">
+        <Loader2 size={24} className="lk-spinner" />
+        <span className="lk-text-loading">Chargement du plan de salle...</span>
       </div>
     );
   }
 
   return (
-    <div className="lk-animate-up" style={{
-      display: 'flex', flexDirection: 'column', gap: 14,
-      height: `calc(100vh - var(--topbar-height) - var(--space-8) - var(--space-8))`,
-      minHeight: 0, maxWidth: 1440, margin: '0 auto',
-    }}>
+    <div className="lk-animate-up lk-floorplan-container">
       <PageHeader
         title="Plan de salle"
         subtitle="Glissez les tables pour les positionner. Scroll pour zoomer."
         right={
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div className="lk-floorplan-header-actions">
             <ServiceModePicker date={state.pickerDate} onChange={handleDateChange} />
             <Button variant="primary" size="md" icon={<Plus size={14} strokeWidth={2.4} />} onClick={handleAddTable}>
               Table
             </Button>
             {state.dirty && (
-              <Button variant="secondary" size="md" icon={saving ? <Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite' }} /> : <Save size={14} />} onClick={handleSave} disabled={saving}>
+              <Button variant="secondary" size="md" icon={saving ? <Loader2 size={14} className="lk-spinner" /> : <Save size={14} />} onClick={handleSave} disabled={saving}>
                 Enregistrer
               </Button>
             )}
@@ -297,7 +293,7 @@ export default function Floorplan() {
       />
 
       {error && (
-        <div style={{ padding: '8px 12px', background: 'var(--lk-error-tint)', borderRadius: 'var(--radius-sm)', color: 'var(--lk-error)', fontSize: 'var(--fs-sm)', flexShrink: 0 }}>
+        <div className="lk-floorplan-error">
           {error}
         </div>
       )}
@@ -313,10 +309,10 @@ export default function Floorplan() {
       )}
 
       {/* Canvas + side panel */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 14, flex: 1, minHeight: 0, alignItems: 'flex-start' }}>
-        <Card padded={false} style={{ padding: 0, overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <div className="lk-floorplan-main-grid">
+        <Card padded={false} className="lk-floorplan-canvas-card">
           {/* Zone tabs inside card header */}
-          <div style={{ padding: '10px 16px', borderBottom: '1px solid var(--lk-border)', background: 'var(--lk-surface-1)', flexShrink: 0 }}>
+          <div className="lk-floorplan-room-tabs-bar">
             <RoomTabs
               rooms={state.rooms}
               activeRoomId={state.activeRoomId}
@@ -326,7 +322,7 @@ export default function Floorplan() {
           </div>
 
           {/* Canvas */}
-          <div style={{ position: 'relative', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+          <div className="lk-floorplan-canvas-area">
             {activeRoom && (
               <FloorplanCanvas
                 room={activeRoom}
@@ -343,7 +339,7 @@ export default function Floorplan() {
         </Card>
 
         {/* Side panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+        <div className="lk-floorplan-side-col">
           {/* Zone capacity */}
           <ZoneCapacityCard tables={roomTables} roomName={activeRoom?.name ?? ''} />
 
@@ -356,10 +352,10 @@ export default function Floorplan() {
               onClose={() => dispatch({ type: 'CLEAR_SELECTION' })}
             />
           ) : (
-            <Card padded={false} style={{ padding: '16px 18px', background: 'var(--lk-surface-1)' }}>
-              <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                <Info size={16} style={{ color: 'var(--lk-text-muted)', flexShrink: 0, marginTop: 2 }} />
-                <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-secondary)', lineHeight: 1.5 }}>
+            <Card padded={false} className="lk-floorplan-hint-card">
+              <div className="lk-floorplan-hint-inner">
+                <Info size={16} className="lk-floorplan-hint-icon" />
+                <div className="lk-floorplan-hint-text">
                   Cliquez sur une table pour la modifier. Glissez-la pour la repositionner. <Kbd>Shift</Kbd>+clic pour selectionner plusieurs tables.
                 </div>
               </div>
@@ -367,9 +363,9 @@ export default function Floorplan() {
           )}
 
           {/* Shortcuts */}
-          <Card padded={false} style={{ padding: '14px 18px' }}>
-            <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 8 }}>Raccourcis</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, fontSize: 'var(--fs-sm)', color: 'var(--lk-text-secondary)' }}>
+          <Card padded={false} className="lk-floorplan-shortcuts-card">
+            <div className="lk-floorplan-shortcuts-title">Raccourcis</div>
+            <div className="lk-floorplan-shortcuts-list">
               <KbdRow label="Zoom"><Kbd>Scroll</Kbd></KbdRow>
               <KbdRow label="Deplacer le plan"><Kbd>Clic</Kbd>+<Kbd>Drag</Kbd></KbdRow>
               <KbdRow label="Multi-selection"><Kbd>Shift</Kbd>+<Kbd>Clic</Kbd></KbdRow>
@@ -422,31 +418,19 @@ function ZoneCapacityCard({ tables, roomName }: { tables: TableItem[]; roomName:
   const totalSeats = activeTables.reduce((s, t) => s + t.seats, 0);
 
   return (
-    <Card padded={false} style={{ padding: '16px 18px' }}>
-      <div style={{
-        fontSize: 'var(--fs-xs)',
-        fontWeight: 600,
-        letterSpacing: '0.06em',
-        textTransform: 'uppercase' as const,
-        color: 'var(--lk-text-muted)',
-        marginBottom: 10,
-      }}>
+    <Card padded={false} className="lk-floorplan-capacity-card">
+      <div className="lk-floorplan-capacity-label">
         Capacite de la zone
       </div>
-      <div style={{ display: 'flex', alignItems: 'baseline', gap: 6, marginBottom: 4 }}>
-        <span style={{
-          fontSize: 'var(--fs-2xl)',
-          fontWeight: 700,
-          lineHeight: 1,
-          fontVariantNumeric: 'tabular-nums',
-        }}>
+      <div className="lk-floorplan-capacity-value-row">
+        <span className="lk-floorplan-capacity-number">
           {totalSeats}
         </span>
-        <span style={{ fontSize: 'var(--fs-base)', color: 'var(--lk-text-muted)', fontWeight: 500 }}>
+        <span className="lk-floorplan-capacity-unit">
           couverts
         </span>
       </div>
-      <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>
+      <div className="lk-floorplan-capacity-meta">
         {activeTables.length} table{activeTables.length > 1 ? 's' : ''} · {roomName}
       </div>
     </Card>
@@ -455,9 +439,9 @@ function ZoneCapacityCard({ tables, roomName }: { tables: TableItem[]; roomName:
 
 function KbdRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div className="lk-floorplan-kbd-row">
       <span>{label}</span>
-      <span style={{ display: 'flex', gap: 3, alignItems: 'center' }}>{children}</span>
+      <span className="lk-floorplan-kbd-keys">{children}</span>
     </div>
   );
 }

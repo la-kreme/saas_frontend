@@ -20,19 +20,13 @@ export function Avatar({ name, size = 32, style }: AvatarProps) {
   const hue = hashHue(name);
   return (
     <div
+      className="lk-avatar"
       style={{
         width: size,
         height: size,
-        borderRadius: 'var(--radius-full)',
+        fontSize: size * 0.38,
         background: `oklch(0.92 0.06 ${hue})`,
         color: `oklch(0.4 0.08 ${hue})`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontWeight: 600,
-        fontSize: size * 0.38,
-        flexShrink: 0,
-        userSelect: 'none',
         ...style,
       }}
     >

@@ -25,28 +25,19 @@ export function Topbar({ restaurantName, onMobileMenuOpen, onNewResa }: TopbarPr
   const pageTitle = PAGE_TITLES[pathname] ?? '';
 
   return (
-    <header className="topbar" style={{
-      display: 'flex',
-      alignItems: 'center',
-      width: '100%',
-      gap: 16,
-    }}>
+    <header className="topbar lk-topbar-inner">
       {/* Left: mobile menu + breadcrumb */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+      <div className="lk-topbar-left">
         <button className="mobile-menu-btn" onClick={onMobileMenuOpen}>
           <Menu size={20} />
         </button>
-        <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>
+        <span className="lk-topbar-breadcrumb-muted">
           {restaurantName || 'Mon Restaurant'}
         </span>
         {pageTitle && (
           <>
-            <ChevronRight size={12} strokeWidth={2} style={{ color: 'var(--lk-text-muted)' }} />
-            <span style={{
-              fontSize: 'var(--fs-sm)',
-              fontWeight: 500,
-              color: 'var(--lk-text-primary)',
-            }}>
+            <ChevronRight size={12} strokeWidth={2} className="lk-topbar-breadcrumb-chevron" />
+            <span className="lk-topbar-breadcrumb-current">
               {pageTitle}
             </span>
           </>
@@ -54,56 +45,21 @@ export function Topbar({ restaurantName, onMobileMenuOpen, onNewResa }: TopbarPr
       </div>
 
       {/* Center: search trigger (visuel only, feature a venir) */}
-      <div
-        className="hide-on-mobile"
-        style={{
-          flex: 1,
-          maxWidth: 480,
-          marginLeft: 24,
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 10,
-          padding: '0 12px',
-          height: 36,
-          background: 'var(--lk-surface-2)',
-          border: '1px solid var(--lk-border)',
-          borderRadius: 'var(--radius)',
-          color: 'var(--lk-text-muted)',
-          fontSize: 'var(--fs-sm)',
-        }}
-      >
+      <div className="hide-on-mobile lk-topbar-search">
         <Search size={14} strokeWidth={2} />
-        <span style={{ flex: 1 }}>Rechercher un client, une reservation...</span>
+        <span className="lk-topbar-search-text">Rechercher un client, une reservation...</span>
         <Kbd>⌘</Kbd><Kbd>K</Kbd>
       </div>
 
       {/* Right: actions */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 'auto', flexShrink: 0 }}>
+      <div className="lk-topbar-right">
         <Badge tone="primary">Beta</Badge>
         <button
           title="Notifications"
-          style={{
-            position: 'relative',
-            width: 36,
-            height: 36,
-            borderRadius: 'var(--radius)',
-            border: '1px solid transparent',
-            background: 'transparent',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            cursor: 'pointer',
-            color: 'var(--lk-text-secondary)',
-            transition: 'all var(--transition-fast)',
-          }}
+          className="lk-topbar-notif-btn"
         >
           <Bell size={16} strokeWidth={1.8} />
-          <span style={{
-            position: 'absolute', top: 8, right: 8,
-            width: 7, height: 7, borderRadius: '50%',
-            background: 'var(--lk-primary)',
-            border: '2px solid var(--lk-surface-1)',
-          }} />
+          <span className="lk-topbar-notif-dot" />
         </button>
         <Button variant="primary" size="md" icon={<Plus size={14} strokeWidth={2.4} />} onClick={onNewResa}>
           Nouvelle resa

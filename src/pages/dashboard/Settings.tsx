@@ -45,7 +45,7 @@ export default function Settings() {
   };
 
   return (
-    <div className="lk-animate-up" style={{ maxWidth: 880, margin: '0 auto' }}>
+    <div className="lk-animate-up lk-page-container--narrow">
       <PageHeader
         title="Parametres"
         subtitle="Configuration avancee de votre widget de reservation."
@@ -53,7 +53,7 @@ export default function Settings() {
           <Button
             variant="primary"
             size="md"
-            icon={saving ? <Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite' }} /> : saved ? <CheckCircle2 size={14} /> : <Save size={14} />}
+            icon={saving ? <Loader2 size={14} className="lk-spinner" /> : saved ? <CheckCircle2 size={14} /> : <Save size={14} />}
             onClick={handleSave}
             disabled={saving}
           >
@@ -62,13 +62,13 @@ export default function Settings() {
         }
       />
 
-      {error && <p className="form-error" style={{ margin: '12px 0' }}>{error}</p>}
+      {error && <p className="form-error lk-margin-y-sm">{error}</p>}
 
       {/* Notifications */}
       <SettingGroup title="Notifications" subtitle="Recevez les alertes de nouvelles reservations.">
         <FieldLabel label="Email de notification">
           <input className="form-input" type="email" placeholder="restaurant@exemple.fr" value={email} onChange={e => setEmail(e.target.value)} />
-          <span style={{ fontSize: 'var(--fs-xs)', color: 'var(--lk-text-muted)', marginTop: 4, display: 'block' }}>
+          <span className="lk-settings-hint">
             Recoit les alertes de nouvelles reservations.
           </span>
         </FieldLabel>
@@ -127,28 +127,19 @@ function SettingGroup({ title, subtitle, danger, children }: {
   return (
     <Card
       padded={false}
-      style={{
-        padding: '22px 24px',
-        marginBottom: 14,
-        borderColor: danger ? 'rgba(239, 68, 68, 0.2)' : undefined,
-      }}
+      className={`lk-settings-group ${danger ? 'lk-settings-group--danger' : ''}`}
     >
-      <div style={{ marginBottom: 18 }}>
-        <h2 style={{
-          fontSize: 'var(--fs-md)',
-          fontWeight: 600,
-          marginBottom: 3,
-          color: danger ? 'var(--lk-error)' : 'var(--lk-text-primary)',
-        }}>
+      <div className="lk-settings-group-header">
+        <h2 className={`lk-settings-group-title ${danger ? 'lk-settings-group-title--danger' : ''}`}>
           {title}
         </h2>
         {subtitle && (
-          <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)', margin: 0 }}>
+          <p className="lk-settings-group-subtitle">
             {subtitle}
           </p>
         )}
       </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div className="lk-settings-group-body">
         {children}
       </div>
     </Card>
@@ -163,41 +154,25 @@ function SliderRow({ label, value, hint, min, max, step, current, onChange }: {
   const pct = ((current - min) / (max - min)) * 100;
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-        <span style={{ fontSize: 'var(--fs-base)', fontWeight: 500 }}>
+      <div className="lk-settings-slider-header">
+        <span className="lk-settings-slider-label">
           {label}
         </span>
-        <span style={{
-          fontSize: 'var(--fs-sm)', fontWeight: 600,
-          color: 'var(--lk-primary-strong)', fontVariantNumeric: 'tabular-nums',
-        }}>
+        <span className="lk-settings-slider-value">
           {value}
         </span>
       </div>
-      <div style={{ position: 'relative', height: 6, background: 'var(--lk-surface-3)', borderRadius: 3 }}>
-        <div style={{
-          position: 'absolute', left: 0, width: `${pct}%`, height: '100%',
-          background: 'linear-gradient(90deg, var(--lk-primary-soft), var(--lk-primary))',
-          borderRadius: 3,
-        }} />
-        <div style={{
-          position: 'absolute', left: `${pct}%`, top: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 14, height: 14, borderRadius: '50%',
-          background: 'white', border: '2px solid var(--lk-primary)',
-          boxShadow: 'var(--shadow-xs)',
-        }} />
+      <div className="lk-settings-slider-track">
+        <div className="lk-settings-slider-fill" style={{ width: `${pct}%` }} />
+        <div className="lk-settings-slider-thumb" style={{ left: `${pct}%` }} />
       </div>
       <input
         type="range"
         min={min} max={max} step={step} value={current}
         onChange={e => onChange(+e.target.value)}
-        style={{
-          width: '100%', opacity: 0, position: 'relative', marginTop: -10, height: 20,
-          cursor: 'pointer',
-        }}
+        className="lk-settings-slider-input"
       />
-      <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--lk-text-muted)', marginTop: 2 }}>
+      <div className="lk-settings-slider-hint">
         {hint}
       </div>
     </div>
@@ -206,12 +181,8 @@ function SliderRow({ label, value, hint, min, max, step, current, onChange }: {
 
 function FieldLabel({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <span style={{
-        fontSize: 'var(--fs-xs)',
-        fontWeight: 500,
-        color: 'var(--lk-text-secondary)',
-      }}>
+    <label className="lk-field-label">
+      <span className="lk-field-label-text">
         {label}
       </span>
       {children}

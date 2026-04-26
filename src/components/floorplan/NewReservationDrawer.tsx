@@ -47,28 +47,21 @@ export function NewReservationDrawer({ capacity, onSubmit, onClose }: Props) {
   };
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, right: 0, bottom: 0,
-      width: '360px', background: 'var(--lk-bg-base)',
-      borderLeft: '1px solid var(--lk-border)',
-      boxShadow: '-4px 0 12px rgba(0,0,0,0.08)',
-      zIndex: 60, padding: '24px', display: 'flex', flexDirection: 'column', gap: '12px',
-      overflowY: 'auto',
-    }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 style={{ margin: 0, fontSize: '16px' }}>Nouvelle reservation</h3>
+    <div className="lk-fp-drawer">
+      <div className="lk-fp-drawer-header">
+        <h3 className="lk-fp-drawer-title">Nouvelle reservation</h3>
         <button className="btn btn-ghost btn-sm" onClick={onClose}><X size={16} /></button>
       </div>
-      <p style={{ fontSize: '12px', color: 'var(--lk-text-muted)', margin: 0 }}>
+      <p className="lk-fp-drawer-subtitle">
         Capacite merge : {capacity} places
       </p>
 
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <div className="form-group" style={{ flex: 1 }}>
+      <div className="lk-fp-drawer-row">
+        <div className="form-group lk-flex-1">
           <label>Date</label>
           <input type="date" className="form-input" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
-        <div className="form-group" style={{ flex: 1 }}>
+        <div className="form-group lk-flex-1">
           <label>Heure</label>
           <input type="time" className="form-input" value={time} onChange={(e) => setTime(e.target.value)} />
         </div>
@@ -83,12 +76,12 @@ export function NewReservationDrawer({ capacity, onSubmit, onClose }: Props) {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '12px' }}>
-        <div className="form-group" style={{ flex: 1 }}>
+      <div className="lk-fp-drawer-row">
+        <div className="form-group lk-flex-1">
           <label>Prenom</label>
           <input className="form-input" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
         </div>
-        <div className="form-group" style={{ flex: 1 }}>
+        <div className="form-group lk-flex-1">
           <label>Nom</label>
           <input className="form-input" value={lastName} onChange={(e) => setLastName(e.target.value)} />
         </div>

@@ -16,14 +16,10 @@ export function MergeDialog({ scope, tableIds, onConfirm, onClose }: Props) {
   const needsDates = scope !== 'permanent';
 
   return (
-    <div style={{
-      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      background: 'rgba(0,0,0,0.4)', zIndex: 100,
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }}>
-      <div className="card" style={{ width: '400px', padding: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ margin: 0, fontSize: '16px' }}>
+    <div className="lk-fp-overlay">
+      <div className="card lk-fp-dialog">
+        <div className="lk-fp-dialog-header">
+          <h3 className="lk-fp-dialog-title">
             Fusionner {tableIds.length} tables
           </h3>
           <button className="btn btn-ghost btn-sm" onClick={onClose}><X size={16} /></button>
@@ -34,26 +30,26 @@ export function MergeDialog({ scope, tableIds, onConfirm, onClose }: Props) {
           <input className="form-input" value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Ex: Grande table terrasse" />
         </div>
 
-        <div style={{ marginBottom: '12px' }}>
-          <span className="badge" style={{ background: scope === 'permanent' ? 'var(--lk-error-muted)' : 'var(--lk-info-muted)', color: scope === 'permanent' ? 'var(--lk-error)' : 'var(--lk-info)' }}>
+        <div className="lk-fp-merge-scope-row">
+          <span className={`badge ${scope === 'permanent' ? 'lk-fp-merge-scope-badge--permanent' : 'lk-fp-merge-scope-badge--temp'}`}>
             {scope === 'meal' ? 'Repas' : scope === 'service' ? 'Service entier' : 'Definitif'}
           </span>
         </div>
 
         {needsDates && (
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div className="form-group" style={{ flex: 1 }}>
+          <div className="lk-fp-merge-dates-row">
+            <div className="form-group lk-flex-1">
               <label>Debut</label>
               <input type="datetime-local" className="form-input" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} />
             </div>
-            <div className="form-group" style={{ flex: 1 }}>
+            <div className="form-group lk-flex-1">
               <label>Fin</label>
               <input type="datetime-local" className="form-input" value={validUntil} onChange={(e) => setValidUntil(e.target.value)} />
             </div>
           </div>
         )}
 
-        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', marginTop: '16px' }}>
+        <div className="lk-fp-dialog-footer">
           <button className="btn btn-ghost" onClick={onClose}>Annuler</button>
           <button
             className="btn btn-primary"

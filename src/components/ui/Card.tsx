@@ -7,19 +7,15 @@ interface CardProps {
 }
 
 export function Card({ padded = true, hover = false, children, style, className }: CardProps) {
+  const cls = [
+    'lk-card',
+    padded && 'lk-card--padded',
+    hover && 'lk-card--hover',
+    className,
+  ].filter(Boolean).join(' ');
+
   return (
-    <div
-      className={className}
-      style={{
-        background: 'var(--lk-bg-card)',
-        border: '1px solid var(--lk-border)',
-        borderRadius: 'var(--radius-lg)',
-        boxShadow: 'var(--shadow-sm)',
-        padding: padded ? '22px 24px' : undefined,
-        transition: hover ? 'all var(--transition)' : undefined,
-        ...style,
-      }}
-    >
+    <div className={cls} style={style}>
       {children}
     </div>
   );

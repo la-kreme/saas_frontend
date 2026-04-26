@@ -1,0 +1,380 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   LA KREME — UI COMPONENT CLASSES
+   BEM-lite naming: .lk-{component}--{modifier}
+   All values use CSS tokens from index.css
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Button ───────────────────────────────────────────────────────────────── */
+
+.lk-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  font-weight: var(--fw-semibold);
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+
+.lk-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Variants */
+.lk-btn--primary {
+  background: var(--lk-primary);
+  color: var(--lk-text-inverse);
+  border: 2px solid transparent;
+}
+
+.lk-btn--secondary {
+  background: var(--lk-bg-card);
+  color: var(--lk-text-primary);
+  border: 1px solid var(--lk-border);
+}
+
+.lk-btn--ghost {
+  background: transparent;
+  color: var(--lk-text-secondary);
+  border: 1px solid transparent;
+}
+
+.lk-btn--danger {
+  background: var(--lk-error-tint);
+  color: var(--lk-error);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.lk-btn--sky {
+  background: var(--lk-secondary-tint);
+  color: var(--lk-secondary-strong);
+  border: 1px solid transparent;
+}
+
+/* Sizes */
+.lk-btn--sm {
+  height: 28px;
+  padding: 0 10px;
+  font-size: var(--fs-sm);
+  gap: 6px;
+}
+
+.lk-btn--md {
+  height: 36px;
+  padding: 0 14px;
+  font-size: var(--fs-base);
+  gap: 8px;
+}
+
+.lk-btn--lg {
+  height: 44px;
+  padding: 0 18px;
+  font-size: var(--fs-md);
+  gap: 8px;
+}
+
+/* ─── Card ─────────────────────────────────────────────────────────────────── */
+
+.lk-card {
+  background: var(--lk-bg-card);
+  border: 1px solid var(--lk-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.lk-card--padded {
+  padding: 22px 24px;
+}
+
+.lk-card--hover {
+  transition: all var(--transition);
+}
+
+/* ─── Badge ────────────────────────────────────────────────────────────────── */
+
+.lk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: var(--radius-full);
+  font-size: 11.5px;
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+/* Tones */
+.lk-badge--primary {
+  background: var(--lk-primary-tint);
+  color: var(--lk-primary-strong);
+}
+
+.lk-badge--success {
+  background: var(--lk-success-tint);
+  color: var(--lk-success);
+}
+
+.lk-badge--warning {
+  background: var(--lk-warning-tint);
+  color: var(--lk-warning);
+}
+
+.lk-badge--error {
+  background: var(--lk-error-tint);
+  color: var(--lk-error);
+}
+
+.lk-badge--info {
+  background: var(--lk-info-tint);
+  color: var(--lk-info);
+}
+
+.lk-badge--sky {
+  background: var(--lk-secondary-tint);
+  color: var(--lk-secondary-strong);
+}
+
+.lk-badge--neutral {
+  background: var(--lk-surface-3);
+  color: var(--lk-text-muted);
+}
+
+/* ─── Avatar ───────────────────────────────────────────────────────────────── */
+
+.lk-avatar {
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--fw-semibold);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+/* ─── IconBtn ──────────────────────────────────────────────────────────────── */
+
+.lk-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius);
+  border: 1px solid var(--lk-border);
+  background: var(--lk-bg-card);
+  color: var(--lk-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  padding: 0;
+  font-family: inherit;
+}
+
+.lk-icon-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* ─── PageHeader ───────────────────────────────────────────────────────────── */
+
+.lk-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.lk-page-header__eyebrow {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--lk-primary-strong);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-1);
+}
+
+.lk-page-header__title {
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-bold);
+  letter-spacing: -0.025em;
+  color: var(--lk-text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.lk-page-header__subtitle {
+  font-size: var(--fs-base);
+  color: var(--lk-text-muted);
+  margin: var(--space-1) 0 0;
+}
+
+.lk-page-header__right {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* ─── KpiCard ──────────────────────────────────────────────────────────────── */
+
+.lk-kpi {
+  background: var(--lk-bg-card);
+  border: 1px solid var(--lk-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.lk-kpi__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.lk-kpi__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lk-kpi__indicators {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lk-kpi__trend {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--lk-success);
+}
+
+.lk-kpi__hot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--lk-warning);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.lk-kpi__label {
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-semibold);
+  color: var(--lk-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.lk-kpi__value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.lk-kpi__value {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  color: var(--lk-text-primary);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.lk-kpi__sub {
+  font-size: var(--fs-sm);
+  color: var(--lk-text-muted);
+}
+
+/* ─── Kbd ──────────────────────────────────────────────────────────────────── */
+
+.lk-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: var(--radius-sm);
+  background: var(--lk-surface-2);
+  border: 1px solid var(--lk-border);
+  font-size: var(--fs-xs);
+  font-family: var(--font-sans);
+  font-weight: var(--fw-medium);
+  color: var(--lk-text-muted);
+  line-height: 1;
+}
+
+/* ─── EmptyState ───────────────────────────────────────────────────────────── */
+
+.lk-empty {
+  padding: var(--space-10);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  background: linear-gradient(135deg, var(--lk-primary-soft) 0%, var(--lk-secondary-tint) 100%);
+}
+
+.lk-empty__icon {
+  color: var(--lk-primary);
+  margin-bottom: var(--space-1);
+}
+
+.lk-empty__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  color: var(--lk-text-primary);
+  margin: 0;
+}
+
+.lk-empty__desc {
+  font-size: var(--fs-base);
+  color: var(--lk-text-secondary);
+  max-width: 360px;
+  margin: 0;
+}
+
+.lk-empty__action {
+  margin-top: var(--space-2);
+}
+
+/* ─── FilterPill ───────────────────────────────────────────────────────────── */
+
+.lk-filter-pill {
+  padding: 6px 12px;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--lk-border);
+  background: transparent;
+  color: var(--lk-text-secondary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+}
+
+.lk-filter-pill--active {
+  background: var(--lk-primary-tint);
+  color: var(--lk-primary-strong);
+  border-color: rgba(237, 115, 169, 0.18);
+}
+
+.lk-filter-pill__count {
+  font-size: var(--fs-xs);
+  opacity: 0.7;
+  font-weight: var(--fw-semibold);
+}

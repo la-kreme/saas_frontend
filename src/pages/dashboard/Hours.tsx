@@ -171,8 +171,8 @@ export default function Hours() {
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: 12 }}>
-        <Loader2 size={24} style={{ animation: 'spin 0.7s linear infinite', color: 'var(--lk-primary)' }} />
+      <div className="lk-loading-center--fullpage">
+        <Loader2 size={24} className="lk-spinner" />
       </div>
     );
   }
@@ -182,28 +182,28 @@ export default function Hours() {
   const dayConfig = days[activeDay];
 
   return (
-    <div className="lk-animate-up" style={{ maxWidth: 1440, margin: '0 auto' }}>
+    <div className="lk-animate-up lk-page-container">
       <PageHeader
         title="Horaires d'ouverture"
         subtitle="Definissez quand vos clients peuvent reserver."
         right={
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div className="lk-actions-row">
             <Button variant="secondary" size="md" icon={<Repeat size={14} strokeWidth={2} />} onClick={() => copyToAll(activeDay)} disabled={!dayConfig.enabled}>
               Copier vers...
             </Button>
-            <Button variant="primary" size="md" icon={saving ? <Loader2 size={14} style={{ animation: 'spin 0.7s linear infinite' }} /> : <Save size={14} />} onClick={handleSave} disabled={!isValid || !hasChanges || saving}>
+            <Button variant="primary" size="md" icon={saving ? <Loader2 size={14} className="lk-spinner" /> : <Save size={14} />} onClick={handleSave} disabled={!isValid || !hasChanges || saving}>
               Enregistrer
             </Button>
           </div>
         }
       />
 
-      {error && <p className="form-error" style={{ margin: '12px 0' }}>{error}</p>}
-      {success && <p style={{ margin: '12px 0', color: 'var(--lk-success)', fontSize: 'var(--fs-sm)' }}>{success}</p>}
+      {error && <p className="form-error lk-margin-y-sm">{error}</p>}
+      {success && <p className="lk-text-success lk-margin-y-sm">{success}</p>}
 
       {/* Week strip */}
-      <Card padded={false} style={{ overflow: 'hidden', marginBottom: 14 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }}>
+      <Card padded={false} className="lk-hours-week-strip">
+        <div className="lk-hours-week-grid">
           {DAYS.map((dayName, i) => {
             const d = days[i];
             const isActive = i === activeDay;
@@ -211,36 +211,22 @@ export default function Hours() {
               <button
                 key={i}
                 onClick={() => setActiveDay(i)}
-                style={{
-                  padding: '14px 12px',
-                  textAlign: 'left',
-                  border: 'none',
-                  borderRight: i < 6 ? '1px solid var(--lk-border)' : undefined,
-                  borderTop: isActive ? '2px solid var(--lk-primary)' : '2px solid transparent',
-                  background: isActive ? 'var(--lk-primary-tint)' : 'var(--lk-bg-card)',
-                  cursor: 'pointer',
-                  transition: 'all var(--transition-fast)',
-                }}
+                className={`lk-hours-day-btn ${isActive ? 'lk-hours-day-btn--active' : 'lk-hours-day-btn--inactive'} ${i < 6 ? 'lk-hours-day-border-right' : ''}`}
               >
-                <div style={{
-                  fontSize: 'var(--fs-xs)', fontWeight: 600,
-                  letterSpacing: '0.04em', textTransform: 'uppercase',
-                  color: isActive ? 'var(--lk-primary-strong)' : 'var(--lk-text-muted)',
-                  marginBottom: 5,
-                }}>
+                <div className={`lk-hours-day-label ${isActive ? 'lk-hours-day-label--active' : 'lk-hours-day-label--inactive'}`}>
                   {dayName.slice(0, 3)}
                 </div>
                 {d.enabled ? (
                   <>
-                    <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600 }}>
+                    <div className="lk-hours-day-count">
                       {d.services.length} service{d.services.length > 1 ? 's' : ''}
                     </div>
-                    <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--lk-text-muted)', marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>
+                    <div className="lk-hours-day-times">
                       {d.services[0]?.open_time}–{d.services[d.services.length - 1]?.close_time}
                     </div>
                   </>
                 ) : (
-                  <div style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)', display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                  <div className="lk-hours-day-closed">
                     <Lock size={11} strokeWidth={2} /> Ferme
                   </div>
                 )}
@@ -251,33 +237,26 @@ export default function Hours() {
       </Card>
 
       {/* Day editor + week preview */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 16 }}>
+      <div className="lk-hours-editor-grid">
         {/* Day editor */}
-        <Card padded={false} style={{ overflow: 'hidden' }}>
-          <div style={{
-            padding: '16px 20px', borderBottom: '1px solid var(--lk-border)',
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <h2 style={{ fontSize: 'var(--fs-lg)', fontWeight: 600, margin: 0 }}>
+        <Card padded={false} className="lk-hours-editor-card">
+          <div className="lk-hours-editor-header">
+            <div className="lk-hours-editor-header-left">
+              <h2 className="lk-hours-editor-day-title">
                 {DAYS[activeDay]}
               </h2>
               <label className="toggle">
                 <input type="checkbox" checked={dayConfig.enabled} onChange={() => toggleDay(activeDay)} />
                 <span className="toggle-slider" />
               </label>
-              <span style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)' }}>
+              <span className="lk-hours-editor-status">
                 {dayConfig.enabled ? 'Ouvert' : 'Ferme'}
               </span>
             </div>
             {dayConfig.enabled && (
               <button
                 onClick={() => copyToAll(activeDay)}
-                style={{
-                  fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)',
-                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                  background: 'none', border: 'none', cursor: 'pointer',
-                }}
+                className="lk-hours-copy-btn"
               >
                 <Copy size={12} /> Copier vers...
               </button>
@@ -296,17 +275,10 @@ export default function Hours() {
           ))}
 
           {dayConfig.enabled && (
-            <div style={{ padding: '14px 20px', borderTop: '1px solid var(--lk-border)' }}>
+            <div className="lk-hours-add-service-wrap">
               <button
                 onClick={() => addService(activeDay)}
-                style={{
-                  width: '100%', padding: 10, borderRadius: 'var(--radius)',
-                  border: '1px dashed var(--lk-border-strong)', background: 'transparent',
-                  fontSize: 'var(--fs-sm)', fontWeight: 500,
-                  color: 'var(--lk-text-secondary)',
-                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-                  cursor: 'pointer',
-                }}
+                className="lk-hours-add-service-btn"
               >
                 <Plus size={13} strokeWidth={2.4} /> Ajouter un service
               </button>
@@ -315,30 +287,33 @@ export default function Hours() {
         </Card>
 
         {/* Week preview */}
-        <Card padded={false} style={{ padding: '16px 18px' }}>
-          <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 8 }}>
+        <Card padded={false} className="lk-hours-preview-card">
+          <div className="lk-hours-preview-title">
             Apercu de la semaine
           </div>
-          <p style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-muted)', marginBottom: 14 }}>
+          <p className="lk-hours-preview-desc">
             Chaque bloc represente un service.
           </p>
           {DAYS.map((d, i) => {
             const cfg = days[i];
             return (
-              <div key={d} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                <div style={{ width: 38, fontSize: 'var(--fs-xs)', fontWeight: 500, color: 'var(--lk-text-muted)' }}>
+              <div key={d} className="lk-hours-preview-row">
+                <div className="lk-hours-preview-day-label">
                   {d.slice(0, 3)}
                 </div>
-                <div style={{ flex: 1, height: 14, background: 'var(--lk-surface-2)', borderRadius: 4, position: 'relative', overflow: 'hidden' }}>
+                <div className="lk-hours-preview-bar">
                   {cfg.enabled && cfg.services.map((s, si) => {
                     const start = timeToFrac(s.open_time);
                     const end = timeToFrac(s.close_time);
                     return (
-                      <div key={si} style={{
-                        position: 'absolute', left: `${start * 100}%`, width: `${(end - start) * 100}%`,
-                        top: 2, bottom: 2,
-                        background: 'var(--lk-primary)', borderRadius: 3, opacity: 0.85,
-                      }} />
+                      <div
+                        key={si}
+                        className="lk-hours-preview-block"
+                        style={{
+                          left: `${start * 100}%`,
+                          width: `${(end - start) * 100}%`,
+                        }}
+                      />
                     );
                   })}
                 </div>
@@ -359,50 +334,40 @@ function ServiceEditor({ svc, showBorder, canDelete, onUpdate, onDelete }: {
   onDelete: () => void;
 }) {
   return (
-    <div style={{ padding: '18px 20px', borderTop: showBorder ? '1px solid var(--lk-border)' : 'none' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
+    <div className={`lk-hours-svc-editor ${showBorder ? 'lk-hours-svc-editor--bordered' : ''}`}>
+      <div className="lk-hours-svc-header">
         <input
           value={svc.service_name}
           onChange={e => onUpdate('service_name', e.target.value)}
           placeholder="Nom du service"
-          style={{
-            fontSize: 'var(--fs-base)', fontWeight: 600,
-            padding: '4px 8px', marginLeft: -8,
-            border: '1px solid transparent', borderRadius: 6,
-            background: 'transparent', outline: 'none',
-            color: 'var(--lk-text-primary)',
-          }}
+          className="lk-hours-svc-name-input"
         />
         {canDelete && (
           <button
             onClick={onDelete}
-            style={{
-              color: 'var(--lk-text-muted)', fontSize: 'var(--fs-sm)',
-              display: 'inline-flex', alignItems: 'center', gap: 4,
-              background: 'none', border: 'none', cursor: 'pointer',
-            }}
+            className="lk-hours-svc-delete-btn"
           >
             <Trash2 size={12} /> Supprimer
           </button>
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10 }}>
+      <div className="lk-hours-svc-fields">
         <FieldLabel label="Ouverture">
-          <input type="time" value={svc.open_time} onChange={e => onUpdate('open_time', e.target.value)} style={inputStyle} />
+          <input type="time" value={svc.open_time} onChange={e => onUpdate('open_time', e.target.value)} className="lk-hours-input" />
         </FieldLabel>
         <FieldLabel label="Fermeture">
-          <input type="time" value={svc.close_time} onChange={e => onUpdate('close_time', e.target.value)} style={inputStyle} />
+          <input type="time" value={svc.close_time} onChange={e => onUpdate('close_time', e.target.value)} className="lk-hours-input" />
         </FieldLabel>
         <FieldLabel label="Duree repas">
-          <select value={svc.slot_duration_min} onChange={e => onUpdate('slot_duration_min', +e.target.value)} style={inputStyle}>
+          <select value={svc.slot_duration_min} onChange={e => onUpdate('slot_duration_min', +e.target.value)} className="lk-hours-input">
             <option value={60}>60 min</option>
             <option value={90}>90 min</option>
             <option value={120}>120 min</option>
           </select>
         </FieldLabel>
         <FieldLabel label="Intervalle">
-          <select value={svc.slot_interval_min} onChange={e => onUpdate('slot_interval_min', +e.target.value)} style={inputStyle}>
+          <select value={svc.slot_interval_min} onChange={e => onUpdate('slot_interval_min', +e.target.value)} className="lk-hours-input">
             <option value={15}>15 min</option>
             <option value={30}>30 min</option>
             <option value={60}>60 min</option>
@@ -420,23 +385,17 @@ function HourBar({ from, to }: { from: string; to: string }) {
   const startFrac = timeToFrac(from);
   const endFrac = timeToFrac(to);
   return (
-    <div style={{
-      marginTop: 14, position: 'relative', height: 30,
-      background: 'var(--lk-surface-1)', borderRadius: 'var(--radius)', overflow: 'hidden',
-    }}>
+    <div className="lk-hours-bar">
       {Array.from({ length: 24 }).map((_, h) => (
-        <div key={h} style={{ position: 'absolute', left: `${(h / 24) * 100}%`, top: 0, bottom: 0, width: 1, background: 'var(--lk-border)' }} />
+        <div key={h} className="lk-hours-bar-tick" style={{ left: `${(h / 24) * 100}%` }} />
       ))}
-      <div style={{
-        position: 'absolute',
-        left: `${startFrac * 100}%`,
-        width: `${(endFrac - startFrac) * 100}%`,
-        top: 5, bottom: 5,
-        background: 'linear-gradient(90deg, var(--lk-primary-soft), var(--lk-primary))',
-        borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontSize: 'var(--fs-xs)', fontWeight: 600,
-        color: 'white', textShadow: '0 1px 2px rgba(0,0,0,0.15)', fontVariantNumeric: 'tabular-nums',
-      }}>
+      <div
+        className="lk-hours-bar-fill"
+        style={{
+          left: `${startFrac * 100}%`,
+          width: `${(endFrac - startFrac) * 100}%`,
+        }}
+      >
         {from}–{to}
       </div>
     </div>
@@ -445,8 +404,8 @@ function HourBar({ from, to }: { from: string; to: string }) {
 
 function FieldLabel({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 500, color: 'var(--lk-text-secondary)' }}>
+    <label className="lk-field-label">
+      <span className="lk-field-label-text">
         {label}
       </span>
       {children}
@@ -458,10 +417,3 @@ function timeToFrac(t: string): number {
   const [h, m] = t.split(':').map(Number);
   return (h + m / 60) / 24;
 }
-
-const inputStyle: React.CSSProperties = {
-  height: 34, padding: '0 10px', fontSize: 'var(--fs-sm)',
-  border: '1px solid var(--lk-border)', borderRadius: 'var(--radius-sm)',
-  background: 'var(--lk-bg-card)', outline: 'none', color: 'var(--lk-text-primary)',
-  width: '100%',
-};

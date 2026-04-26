@@ -6,7 +6,7 @@ import {
 import { useTourSafe, TOUR_STEPS } from '../../contexts/OnboardingTourContext';
 import { Avatar } from '../ui/Avatar';
 
-// ─── Nav config ──��──────────────────────────────────────────────────────────
+// ─── Nav config ─────────────────────────────────────────────────────────────
 
 interface NavItem {
   readonly to: string;
@@ -58,46 +58,34 @@ function SidebarNavItems({ hasLinkedPlace, onClose }: { hasLinkedPlace: boolean;
               const isTourDimmed = isTourActive && !isTourTarget;
               const isDisabled = isTourActive || isLocked;
 
+              const linkClass = [
+                'lk-sidebar-nav-link',
+                isLocked ? 'lk-sidebar-nav-link--locked' : '',
+                isTourDimmed ? 'lk-sidebar-nav-link--tour-dimmed' : '',
+                isDisabled ? 'lk-sidebar-nav-link--disabled' : '',
+              ].filter(Boolean).join(' ');
+
               return (
                 <NavLink
                   key={to}
                   to={isDisabled ? location.pathname : to}
                   end={end}
-                  className={({ isActive }) => `nav-item${isActive ? ' active' : ''}`}
+                  className={({ isActive }) => `nav-item ${linkClass}${isActive ? ' active' : ''}`}
                   onClick={(e) => {
                     if (isDisabled) e.preventDefault();
                     else onClose?.();
                   }}
-                  style={{
-                    opacity: isLocked || isTourDimmed ? 0.4 : 1,
-                    filter: isLocked ? 'grayscale(1)' : 'none',
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    position: 'relative',
-                  }}
                 >
                   <Icon size={16} strokeWidth={1.7} />
-                  <span style={{ flex: 1 }}>{label}</span>
+                  <span className="lk-sidebar-nav-label">{label}</span>
                   {badge && (
-                    <span style={{
-                      fontSize: 'var(--fs-xs)',
-                      fontWeight: 600,
-                      background: 'var(--lk-warning-tint)',
-                      color: 'var(--lk-warning)',
-                      borderRadius: 'var(--radius-full)',
-                      padding: '1px 7px',
-                      lineHeight: '16px',
-                    }}>
+                    <span className="lk-sidebar-nav-badge">
                       {badge}
                     </span>
                   )}
-                  {isLocked && <Lock size={12} style={{ opacity: 0.7 }} />}
+                  {isLocked && <Lock size={12} className="lk-sidebar-lock-icon" />}
                   {isTourTarget && (
-                    <span style={{
-                      width: 8, height: 8, borderRadius: '50%',
-                      background: 'var(--lk-primary)',
-                      animation: 'lk-pulse 1.5s ease-in-out infinite',
-                      flexShrink: 0,
-                    }} />
+                    <span className="lk-sidebar-tour-dot" />
                   )}
                 </NavLink>
               );
@@ -125,44 +113,20 @@ export function Sidebar({ restaurantName, userEmail, hasLinkedPlace, isMobileOpe
     <aside className={`sidebar ${isMobileOpen ? 'mobile-open' : ''}`}>
       {/* Logo + restaurant */}
       <div className="sidebar-logo">
-        <img src="/logo.png" alt="Le Koulis" style={{ height: 36, width: 'auto' }} />
+        <img src="/logo.png" alt="Le Koulis" className="lk-sidebar-logo-img" />
       </div>
 
       {/* Restaurant card */}
       {restaurantName && (
-        <div style={{ padding: '14px 12px 6px' }}>
-          <div style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '10px 10px',
-            borderRadius: 'var(--radius)',
-            background: 'var(--lk-surface-2)',
-            border: '1px solid var(--lk-border)',
-          }}>
+        <div className="lk-sidebar-restaurant-wrap">
+          <div className="lk-sidebar-restaurant-card">
             <Avatar name={restaurantName} size={32} />
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 'var(--fs-sm)',
-                fontWeight: 600,
-                color: 'var(--lk-text-primary)',
-                lineHeight: 1.2,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-              }}>
+            <div className="lk-sidebar-restaurant-info">
+              <div className="lk-sidebar-restaurant-name">
                 {restaurantName}
               </div>
-              <div style={{
-                fontSize: 'var(--fs-xs)',
-                color: 'var(--lk-text-muted)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 4,
-                marginTop: 2,
-              }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--lk-success)', flexShrink: 0 }} />
+              <div className="lk-sidebar-restaurant-status">
+                <span className="lk-sidebar-status-dot" />
                 en ligne
               </div>
             </div>
@@ -175,54 +139,32 @@ export function Sidebar({ restaurantName, userEmail, hasLinkedPlace, isMobileOpe
         <SidebarNavItems hasLinkedPlace={hasLinkedPlace} onClose={onClose} />
 
         {/* Footer */}
-        <div className="mt-auto" style={{ paddingTop: 24 }}>
+        <div className="mt-auto lk-sidebar-footer">
           {/* Agent IA promo */}
-          <div style={{
-            margin: '0 0 12px',
-            padding: '12px',
-            background: 'linear-gradient(135deg, var(--lk-primary-tint) 0%, var(--lk-secondary-tint) 100%)',
-            borderRadius: 'var(--radius)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-          }}>
-            <Sparkles size={16} style={{ color: 'var(--lk-primary)', flexShrink: 0 }} />
+          <div className="lk-sidebar-promo">
+            <Sparkles size={16} className="lk-sidebar-promo-icon" />
             <div>
-              <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, color: 'var(--lk-text-primary)' }}>
+              <div className="lk-sidebar-promo-title">
                 Agent IA
               </div>
-              <div style={{ fontSize: 'var(--fs-xs)', color: 'var(--lk-text-muted)' }}>
+              <div className="lk-sidebar-promo-subtitle">
                 Bientot disponible
               </div>
             </div>
           </div>
 
-          <div className="divider" style={{ margin: '12px 0' }} />
+          <div className="divider lk-sidebar-divider" />
 
           {/* User */}
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            padding: '4px 12px 8px',
-          }}>
+          <div className="lk-sidebar-user">
             <Avatar name={userEmail} size={28} />
-            <span style={{
-              fontSize: 'var(--fs-sm)',
-              color: 'var(--lk-text-muted)',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-              flex: 1,
-              minWidth: 0,
-            }}>
+            <span className="lk-sidebar-user-email">
               {userEmail}
             </span>
           </div>
 
           <button
-            className="nav-item"
-            style={{ width: '100%', textAlign: 'left', background: 'none', border: 'none' }}
+            className="nav-item lk-sidebar-logout-btn"
             onClick={onLogout}
           >
             <LogOut size={16} strokeWidth={1.7} />

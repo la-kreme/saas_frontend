@@ -13,8 +13,8 @@ interface Props {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <label style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-      <span style={{ fontSize: 'var(--fs-xs)', fontWeight: 500, color: 'var(--lk-text-secondary)' }}>
+    <label className="lk-fp-inspector-field">
+      <span className="lk-fp-inspector-field-label">
         {label}
       </span>
       {children}
@@ -22,33 +22,21 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-const inputStyle: React.CSSProperties = {
-  height: 34,
-  padding: '0 10px',
-  fontSize: 'var(--fs-sm)',
-  border: '1px solid var(--lk-border)',
-  borderRadius: 'var(--radius-sm)',
-  background: 'var(--lk-bg-card)',
-  outline: 'none',
-  color: 'var(--lk-text-primary)',
-  width: '100%',
-};
-
 export function TableInspector({ table, onUpdate, onDelete, onClose }: Props) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-      <Card padded={false} style={{ padding: '16px 18px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-          <span style={{ fontSize: 'var(--fs-base)', fontWeight: 600 }}>
+    <div className="lk-fp-inspector-wrap">
+      <Card padded={false} className="lk-fp-inspector-card">
+        <div className="lk-fp-inspector-header">
+          <span className="lk-fp-inspector-table-name">
             Table {table.name}
           </span>
           <IconBtn size={26} onClick={onClose}><X size={14} /></IconBtn>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
+        <div className="lk-fp-inspector-fields-grid">
           <Field label="Nom">
             <input
-              style={inputStyle}
+              className="lk-fp-inspector-input"
               value={table.name}
               onChange={(e) => onUpdate(table.id, { name: e.target.value })}
             />
@@ -57,7 +45,7 @@ export function TableInspector({ table, onUpdate, onDelete, onClose }: Props) {
             <input
               type="number"
               min={1}
-              style={inputStyle}
+              className="lk-fp-inspector-input"
               value={table.seats}
               onChange={(e) => onUpdate(table.id, { seats: Math.max(1, parseInt(e.target.value) || 1) })}
             />
@@ -65,21 +53,12 @@ export function TableInspector({ table, onUpdate, onDelete, onClose }: Props) {
         </div>
 
         <Field label="Forme">
-          <div style={{ display: 'flex', gap: 6, marginTop: 2 }}>
+          <div className="lk-fp-inspector-shape-row">
             {(['rect', 'circle'] as const).map(s => (
               <button
                 key={s}
                 onClick={() => onUpdate(table.id, { shape: s })}
-                style={{
-                  flex: 1, height: 32, fontSize: 'var(--fs-sm)',
-                  fontWeight: 500,
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid',
-                  borderColor: table.shape === s ? 'rgba(237, 115, 169, 0.3)' : 'var(--lk-border)',
-                  background: table.shape === s ? 'var(--lk-primary-tint)' : 'var(--lk-bg-card)',
-                  color: table.shape === s ? 'var(--lk-primary-strong)' : 'var(--lk-text-secondary)',
-                  cursor: 'pointer', transition: 'all var(--transition-fast)',
-                }}
+                className={`lk-fp-inspector-shape-btn ${table.shape === s ? 'lk-fp-inspector-shape-btn--active' : ''}`}
               >
                 {s === 'rect' ? 'Rectangle' : 'Rond'}
               </button>
@@ -93,29 +72,29 @@ export function TableInspector({ table, onUpdate, onDelete, onClose }: Props) {
             min={0} max={360} step={15}
             value={table.rotation}
             onChange={(e) => onUpdate(table.id, { rotation: +e.target.value })}
-            style={{ width: '100%', marginTop: 4 }}
+            className="lk-fp-inspector-range"
           />
         </Field>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+        <div className="lk-fp-inspector-active-row">
           <input
             type="checkbox"
             checked={table.is_active}
             onChange={(e) => onUpdate(table.id, { is_active: e.target.checked })}
             id="table-active"
           />
-          <label htmlFor="table-active" style={{ fontSize: 'var(--fs-sm)', color: 'var(--lk-text-secondary)', cursor: 'pointer' }}>
+          <label htmlFor="table-active" className="lk-fp-inspector-active-label">
             Active
           </label>
         </div>
 
-        <div style={{ display: 'flex', gap: 6, marginTop: 14 }}>
+        <div className="lk-fp-inspector-actions">
           <Button
             variant="danger"
             size="sm"
             icon={<Trash2 size={12} />}
             onClick={() => onDelete(table.id)}
-            style={{ flex: 1 }}
+            className="lk-flex-1"
           >
             Supprimer
           </Button>

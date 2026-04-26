@@ -176,20 +176,13 @@ export function FloorplanCanvas({
   };
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+    <div className="lk-fp-canvas-wrap">
       <svg
         ref={svgRef}
         width="100%"
         height="100%"
         viewBox={viewBox}
-        style={{
-          background: 'var(--lk-bg-base)',
-          borderRadius: 'var(--radius)',
-          border: '1px solid var(--lk-border)',
-          userSelect: 'none',
-          display: 'block',
-          cursor: isPanning ? 'grabbing' : 'grab',
-        }}
+        className={`lk-fp-canvas-svg ${isPanning ? 'lk-fp-canvas-svg--grabbing' : 'lk-fp-canvas-svg--grab'}`}
         onWheel={handleWheel}
         onPointerDown={handleBgPointerDown}
         onPointerMove={handleBgPointerMove}
@@ -249,27 +242,21 @@ export function FloorplanCanvas({
       </svg>
 
       {/* Zoom controls */}
-      <div style={{
-        position: 'absolute', bottom: '12px', right: '12px',
-        display: 'flex', gap: '4px', background: 'var(--lk-bg-base)',
-        border: '1px solid var(--lk-border)', borderRadius: 'var(--radius)',
-        padding: '4px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-      }}>
-        <button className="btn btn-ghost btn-sm" onClick={zoomOut} title="Dezoomer" style={{ padding: '4px 6px' }}>
+      <div className="lk-fp-zoom-controls">
+        <button className="btn btn-ghost btn-sm lk-fp-zoom-btn" onClick={zoomOut} title="Dezoomer">
           <ZoomOut size={14} />
         </button>
         <button
-          className="btn btn-ghost btn-sm"
+          className="btn btn-ghost btn-sm lk-fp-zoom-label"
           onClick={resetZoom}
           title="Reinitialiser"
-          style={{ padding: '4px 8px', fontSize: '11px', minWidth: '40px' }}
         >
           {Math.round(zoom * 100)}%
         </button>
-        <button className="btn btn-ghost btn-sm" onClick={zoomIn} title="Zoomer" style={{ padding: '4px 6px' }}>
+        <button className="btn btn-ghost btn-sm lk-fp-zoom-btn" onClick={zoomIn} title="Zoomer">
           <ZoomIn size={14} />
         </button>
-        <button className="btn btn-ghost btn-sm" onClick={resetZoom} title="Recentrer" style={{ padding: '4px 6px' }}>
+        <button className="btn btn-ghost btn-sm lk-fp-zoom-btn" onClick={resetZoom} title="Recentrer">
           <Maximize size={14} />
         </button>
       </div>

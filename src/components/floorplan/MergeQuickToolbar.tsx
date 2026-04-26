@@ -12,12 +12,8 @@ export function MergeQuickToolbar({ selectedCount, permanentUnlocked, isServiceM
   if (selectedCount < 2) return null;
 
   return (
-    <div style={{
-      display: 'flex', gap: '6px', padding: '8px 12px',
-      background: 'var(--lk-bg-card)', borderRadius: 'var(--radius)',
-      border: '1px solid var(--lk-border)', alignItems: 'center',
-    }}>
-      <span style={{ fontSize: '12px', color: 'var(--lk-text-muted)', marginRight: '4px' }}>
+    <div className="lk-fp-merge-toolbar">
+      <span className="lk-fp-merge-toolbar-count">
         {selectedCount} tables
       </span>
 
@@ -31,16 +27,14 @@ export function MergeQuickToolbar({ selectedCount, permanentUnlocked, isServiceM
           </button>
           {permanentUnlocked ? (
             <button
-              className="btn btn-sm"
-              style={{ background: 'rgba(239, 68, 68, 0.1)', color: 'var(--lk-error)', border: '1px solid var(--lk-error)' }}
+              className="btn btn-sm lk-fp-merge-toolbar-permanent-btn"
               onClick={() => onMerge('permanent')}
             >
               Definitif
             </button>
           ) : (
             <button
-              className="btn btn-sm btn-ghost"
-              style={{ opacity: 0.4 }}
+              className="btn btn-sm btn-ghost lk-fp-merge-toolbar-locked-btn"
               onClick={onUnlockPermanent}
             >
               Definitif <Lock size={10} />
