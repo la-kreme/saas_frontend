@@ -9,4 +9,3 @@ export { KpiCard } from './KpiCard';
 export { Kbd } from './Kbd';
 export { EmptyState } from './EmptyState';
 export { FilterPill } from './FilterPill';
-export { fw, colors, zIndex } from './tokens';
