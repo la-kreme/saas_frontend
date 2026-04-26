@@ -81,8 +81,14 @@ export function FloorplanCanvas({
   const panState = useRef<{ startX: number; startY: number; basePanX: number; basePanY: number } | null>(null);
   const [isPanning, setIsPanning] = useState(false);
 
-  const vbW = room.canvas_width / zoom;
-  const vbH = room.canvas_height / zoom;
+  const PAD = 40;
+  const contentW = tables.reduce((max, t) => Math.max(max, t.pos_x + tableDisplaySize(t.seats).w), room.canvas_width);
+  const contentH = tables.reduce((max, t) => Math.max(max, t.pos_y + tableDisplaySize(t.seats).h), room.canvas_height);
+  const baseW = contentW + PAD;
+  const baseH = contentH + PAD;
+
+  const vbW = baseW / zoom;
+  const vbH = baseH / zoom;
   const viewBox = `${panX} ${panY} ${vbW} ${vbH}`;
 
   const clampZoom = (z: number) => Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z));
@@ -103,20 +109,20 @@ export function FloorplanCanvas({
     if (newZoom === oldZoom) return;
 
     // Adjust pan so the point under the mouse stays fixed
-    const oldW = room.canvas_width / oldZoom;
-    const oldH = room.canvas_height / oldZoom;
-    const newW = room.canvas_width / newZoom;
-    const newH = room.canvas_height / newZoom;
+    const oldW = baseW / oldZoom;
+    const oldH = baseH / oldZoom;
+    const newW = baseW / newZoom;
+    const newH = baseH / newZoom;
 
     setPanX(prev => prev + (oldW - newW) * mx);
     setPanY(prev => prev + (oldH - newH) * my);
     setZoom(newZoom);
-  }, [zoom, room.canvas_width, room.canvas_height]);
+  }, [zoom, baseW, baseH]);
 
   const zoomIn = () => {
     const newZoom = clampZoom(zoom + ZOOM_STEP);
-    const dw = room.canvas_width / zoom - room.canvas_width / newZoom;
-    const dh = room.canvas_height / zoom - room.canvas_height / newZoom;
+    const dw = baseW / zoom - baseW / newZoom;
+    const dh = baseH / zoom - baseH / newZoom;
     setPanX(p => p + dw / 2);
     setPanY(p => p + dh / 2);
     setZoom(newZoom);
@@ -124,8 +130,8 @@ export function FloorplanCanvas({
 
   const zoomOut = () => {
     const newZoom = clampZoom(zoom - ZOOM_STEP);
-    const dw = room.canvas_width / zoom - room.canvas_width / newZoom;
-    const dh = room.canvas_height / zoom - room.canvas_height / newZoom;
+    const dw = baseW / zoom - baseW / newZoom;
+    const dh = baseH / zoom - baseH / newZoom;
     setPanX(p => p + dw / 2);
     setPanY(p => p + dh / 2);
     setZoom(newZoom);
@@ -182,6 +188,7 @@ export function FloorplanCanvas({
         width="100%"
         height="100%"
         viewBox={viewBox}
+        preserveAspectRatio="xMinYMin meet"
         className={`lk-fp-canvas-svg ${isPanning ? 'lk-fp-canvas-svg--grabbing' : 'lk-fp-canvas-svg--grab'}`}
         onWheel={handleWheel}
         onPointerDown={handleBgPointerDown}
@@ -193,7 +200,7 @@ export function FloorplanCanvas({
             <path d="M 10 0 L 0 0 0 10" fill="none" stroke="var(--lk-border)" strokeWidth="0.3" opacity="0.5" />
           </pattern>
         </defs>
-        <rect width={room.canvas_width} height={room.canvas_height} fill="url(#grid)" />
+        <rect width={baseW} height={baseH} fill="url(#grid)" />
 
         {/* Contours des merges */}
         {merges.map((merge) => {

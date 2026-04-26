@@ -621,11 +621,21 @@
   background: var(--lk-surface-1);
 }
 
+.lk-resa-grid-date {
+  font-size: var(--fs-sm);
+  color: var(--lk-text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 .lk-resa-grid-time {
   font-weight: 700;
   font-size: var(--fs-sm);
   font-variant-numeric: tabular-nums;
   color: var(--lk-primary-strong);
+}
+
+.lk-resa-grid-row--past {
+  opacity: 0.5;
 }
 
 .lk-resa-grid-client {

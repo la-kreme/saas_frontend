@@ -11,7 +11,17 @@ import {
   PageHeader, Card, Button, StatusPill, Avatar, EmptyState, FilterPill, IconBtn,
 } from '../../components/ui';
 
-const RESA_GRID = '80px 1.6fr 80px 1fr 110px 40px';
+const RESA_GRID = '90px 70px 1.6fr 70px 1fr 110px 40px';
+
+function isPast(resa: ReservationItem): boolean {
+  const now = new Date();
+  const resaDate = new Date(`${resa.reservation_date}T${resa.reservation_time}`);
+  return resaDate < now;
+}
+
+function fmtDateShort(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
 
 const STATUS_FILTERS = [
   { value: '', label: 'Toutes' },
@@ -224,7 +234,7 @@ function LoadingPlaceholder() {
 }
 
 function TableHeader() {
-  const cols = ['Heure', 'Client', 'Pers.', 'Notes', 'Statut', ''];
+  const cols = ['Date', 'Heure', 'Client', 'Pers.', 'Notes', 'Statut', ''];
   return (
     <div className="lk-resa-table-header" style={{ gridTemplateColumns: RESA_GRID }}>
       {cols.map(c => (
@@ -241,14 +251,19 @@ function ReservationGridRow({ resa, isLast, actionLoading, onStatusChange }: {
   onStatusChange: (id: string, s: 'confirmed' | 'cancelled') => void;
 }) {
   const fullName = `${resa.guest_first_name} ${resa.guest_last_name}`.trim();
+  const past = isPast(resa);
   return (
     <div
-      className="lk-resa-grid-row"
+      className={`lk-resa-grid-row${past ? ' lk-resa-grid-row--past' : ''}`}
       style={{
         gridTemplateColumns: RESA_GRID,
         borderBottom: isLast ? 'none' : '1px solid var(--lk-border)',
       }}
     >
+      <span className="lk-resa-grid-date">
+        {fmtDateShort(resa.reservation_date)}
+      </span>
+
       <span className="lk-resa-grid-time">
         {resa.reservation_time.slice(0, 5)}
       </span>
@@ -314,9 +329,10 @@ function MobileResaCard({ resa, isLast, actionLoading, onStatusChange }: {
   onStatusChange: (id: string, s: 'confirmed' | 'cancelled') => void;
 }) {
   const fullName = `${resa.guest_first_name} ${resa.guest_last_name}`.trim();
+  const past = isPast(resa);
   return (
     <div
-      className="lk-resa-mobile-card"
+      className={`lk-resa-mobile-card${past ? ' lk-resa-grid-row--past' : ''}`}
       style={{ borderBottom: isLast ? 'none' : '1px solid var(--lk-border)' }}
     >
       <div className="lk-resa-mobile-top">
