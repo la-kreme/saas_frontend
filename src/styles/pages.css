@@ -1545,6 +1545,40 @@
   padding: 16px 20px;
 }
 
+/* ── Widget — Responsive ── */
+
+@media (max-width: 850px) {
+  .lk-widget-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .lk-widget-left-col {
+    min-width: 0;
+  }
+
+  .lk-widget-share-url-row {
+    flex-direction: column;
+  }
+
+  .lk-widget-share-url-input {
+    width: 100%;
+  }
+
+  .lk-widget-color-swatches {
+    flex-wrap: wrap;
+  }
+
+  .lk-widget-textarea {
+    max-width: 100%;
+  }
+
+  .lk-widget-directory-card {
+    order: 99;
+  }
+}
+
 /* ─── Settings ─────────────────────────────────────────────────────────────── */
 
 .lk-settings-group {
