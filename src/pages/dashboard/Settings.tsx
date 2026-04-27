@@ -110,7 +110,12 @@ export default function Settings() {
       {/* Zone dangereuse */}
       <SettingGroup title="Zone dangereuse" subtitle="Actions irreversibles." danger>
         <div>
-          <Button variant="danger" size="md" icon={<Trash2 size={13} strokeWidth={2} />}>
+          <Button
+            variant="danger"
+            size="md"
+            icon={<Trash2 size={13} strokeWidth={2} />}
+            onClick={() => window.alert('Contactez le support pour supprimer votre compte.')}
+          >
             Supprimer mon compte
           </Button>
         </div>

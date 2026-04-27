@@ -443,7 +443,6 @@ export default function Floorplan() {
 
       {state.newResaDrawer && (
         <NewReservationDrawer
-          mergeId={state.newResaDrawer.mergeId}
           capacity={state.newResaDrawer.capacity}
           onSubmit={handleNewResaSubmit}
           onClose={() => dispatch({ type: 'CLOSE_NEW_RESA_DRAWER' })}

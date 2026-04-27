@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { getMyReservations, getMyTables, getMyHours, type ReservationItem, type TableItem, type OpeningHoursItem } from '../../lib/api';
 import { PageHeader, KpiCard, Card, Badge, StatusPill, Avatar, EmptyState, Button } from '../../components/ui';
+import { fmtDateLong, fmtTime, parseHour } from '../../lib/format';
 
 export default function Today() {
   const [reservations, setReservations] = useState<ReservationItem[]>([]);
@@ -40,10 +41,7 @@ export default function Today() {
     .filter(r => r.status !== 'cancelled')
     .reduce((sum, r) => sum + r.party_size, 0);
 
-  const fmtDate = (date: string) =>
-    new Date(date).toLocaleDateString('fr-FR', {
-      weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    });
+  const fmtDate = fmtDateLong;
 
   return (
     <div className="lk-animate-up lk-page-container">
@@ -205,13 +203,6 @@ function PlanningCard({
 
 // ─── Timeline View ───────────────────────────────────────────────────────────
 
-function parseHour(timeStr: string): number {
-  return parseInt(timeStr.split(':')[0]);
-}
-
-function fmtTime(timeStr: string): string {
-  return timeStr.slice(0, 5);
-}
 
 function TimelineView({ reservations, hours, today }: { reservations: ReservationItem[]; hours: OpeningHoursItem[]; today: string }) {
   // Filtrer les services actifs du jour

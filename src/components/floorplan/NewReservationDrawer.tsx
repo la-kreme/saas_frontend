@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 
 interface Props {
-  mergeId: string;
   capacity: number;
   onSubmit: (data: {
     reservation_date: string;

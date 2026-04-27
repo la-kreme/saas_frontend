@@ -32,13 +32,9 @@ export function CommandPalette({ open, onClose }: Props) {
   }, [open]);
 
   useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        if (open) onClose();
-        else onClose(); // toggle handled by parent
-      }
-      if (e.key === 'Escape' && open) onClose();
+      if (e.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

@@ -10,6 +10,7 @@ import {
 import {
   PageHeader, Card, Button, StatusPill, Avatar, EmptyState, FilterPill, IconBtn,
 } from '../../components/ui';
+import { fmtDateShort } from '../../lib/format';
 
 const RESA_GRID = '90px 70px 1.6fr 70px 1fr 110px 40px';
 
@@ -17,10 +18,6 @@ function isPast(resa: ReservationItem): boolean {
   const now = new Date();
   const resaDate = new Date(`${resa.reservation_date}T${resa.reservation_time}`);
   return resaDate < now;
-}
-
-function fmtDateShort(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
 const STATUS_FILTERS = [

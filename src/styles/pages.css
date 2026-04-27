@@ -212,7 +212,6 @@
   align-items: center;
   justify-content: space-between;
   background: var(--lk-surface-1);
-  border-top: 1px solid var(--lk-border);
   border: none;
   border-top: 1px solid var(--lk-border);
   cursor: pointer;
