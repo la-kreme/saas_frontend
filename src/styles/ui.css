@@ -84,6 +84,8 @@
   border: 1px solid var(--lk-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  min-width: 0;
+  max-width: 100%;
 }
 
 .lk-card--padded {
@@ -293,6 +295,35 @@
 .lk-kpi__sub {
   font-size: var(--fs-sm);
   color: var(--lk-text-muted);
+}
+
+@media (max-width: 850px) {
+  .lk-kpi {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    padding: 10px 12px;
+  }
+  .lk-kpi__header {
+    flex-shrink: 0;
+  }
+  .lk-kpi__icon {
+    width: 26px;
+    height: 26px;
+  }
+  .lk-kpi__indicators,
+  .lk-kpi__sub {
+    display: none;
+  }
+  .lk-kpi__label {
+    font-size: 9px;
+  }
+  .lk-kpi__value {
+    font-size: var(--fs-md);
+  }
+  .lk-status-pill-label {
+    display: none;
+  }
 }
 
 /* ─── Kbd ──────────────────────────────────────────────────────────────────── */

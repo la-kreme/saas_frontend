@@ -18,7 +18,7 @@ export function StatusPill({ status }: StatusPillProps) {
   const c = config[status] ?? config.pending;
   return (
     <Badge tone={c.tone} icon={c.icon}>
-      {c.label}
+      <span className="lk-status-pill-label">{c.label}</span>
     </Badge>
   );
 }

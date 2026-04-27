@@ -223,6 +223,8 @@ input, textarea, select { font-family: inherit; }
 .page-content {
   padding: var(--space-8) var(--space-8);
   flex: 1;
+  overflow-x: hidden;
+  min-width: 0;
 }
 
 /* Mobile Responsive Sidebar */
@@ -253,6 +255,7 @@ input, textarea, select { font-family: inherit; }
 
   .main-content {
     margin-left: 0;
+    width: 100vw;
   }
 
   .topbar {
