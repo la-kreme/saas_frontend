@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Plus, Save, Loader2, Info } from 'lucide-react';
 import {
   getFloorplan, createTable, updateTable, deleteTable,
@@ -20,14 +21,29 @@ import { RelocationConfirmDialog } from '../../components/floorplan/RelocationCo
 import { NewReservationDrawer } from '../../components/floorplan/NewReservationDrawer';
 import { PageHeader, Card, Button, Kbd } from '../../components/ui';
 
+function useIsMobile(breakpoint = 850) {
+  const [mobile, setMobile] = useState(() => window.innerWidth <= breakpoint);
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const handler = (e: MediaQueryListEvent) => setMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [breakpoint]);
+  return mobile;
+}
+
 export default function Floorplan() {
   const { state, dispatch } = useFloorplanState();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [roomDrawer, setRoomDrawer] = useState<{ room: Room | null; isNew: boolean } | null>(null);
   const [mergePreview, setMergePreview] = useState<MergePreview | null>(null);
   const [pendingMergeData, setPendingMergeData] = useState<{ scope: string; valid_from?: string; valid_until?: string; label?: string } | null>(null);
+  const [infoPanelOpen, setInfoPanelOpen] = useState(false);
+  const [editTableId, setEditTableId] = useState<string | null>(null);
+  const editTable = editTableId ? state.tables.find(t => t.id === editTableId) : undefined;
 
   // Charger le floorplan
   const loadData = useCallback(async (date?: string) => {
@@ -332,47 +348,81 @@ export default function Floorplan() {
                 onSelect={handleSelect}
                 onDrag={handleDrag}
                 onDragEnd={handleDragEnd}
+                onEdit={(id) => setEditTableId(id)}
+                mobile={isMobile}
                 onClearSelection={() => dispatch({ type: 'CLEAR_SELECTION' })}
               />
             )}
+
+            {/* Save button overlay — visible when dirty */}
+            {state.dirty && (
+              <button
+                className="lk-floorplan-save-overlay"
+                onClick={handleSave}
+                disabled={saving}
+                title="Enregistrer"
+              >
+                {saving ? <Loader2 size={16} className="lk-spinner" /> : <Save size={16} />}
+              </button>
+            )}
+
+            {/* Mobile info button */}
+            <button
+              className="lk-floorplan-info-toggle"
+              onClick={() => setInfoPanelOpen(o => !o)}
+              title="Informations"
+            >
+              <Info size={16} />
+            </button>
           </div>
         </Card>
 
-        {/* Side panel */}
-        <div className="lk-floorplan-side-col">
-          {/* Zone capacity */}
-          <ZoneCapacityCard tables={roomTables} roomName={activeRoom?.name ?? ''} />
-
-          {/* Table inspector or hint */}
-          {state.inspectorOpen && selectedTable ? (
-            <TableInspector
-              table={selectedTable}
-              onUpdate={handleUpdateTable}
-              onDelete={handleDeleteTable}
-              onClose={() => dispatch({ type: 'CLEAR_SELECTION' })}
-            />
-          ) : (
-            <Card padded={false} className="lk-floorplan-hint-card">
-              <div className="lk-floorplan-hint-inner">
-                <Info size={16} className="lk-floorplan-hint-icon" />
-                <div className="lk-floorplan-hint-text">
-                  Cliquez sur une table pour la modifier. Glissez-la pour la repositionner. <Kbd>Shift</Kbd>+clic pour selectionner plusieurs tables.
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Shortcuts */}
-          <Card padded={false} className="lk-floorplan-shortcuts-card">
-            <div className="lk-floorplan-shortcuts-title">Raccourcis</div>
-            <div className="lk-floorplan-shortcuts-list">
-              <KbdRow label="Zoom"><Kbd>Scroll</Kbd></KbdRow>
-              <KbdRow label="Deplacer le plan"><Kbd>Clic</Kbd>+<Kbd>Drag</Kbd></KbdRow>
-              <KbdRow label="Multi-selection"><Kbd>Shift</Kbd>+<Kbd>Clic</Kbd></KbdRow>
-            </div>
-          </Card>
+        {/* Side panel — desktop */}
+        <div className="lk-floorplan-side-col lk-floorplan-side-desktop">
+          <FloorplanSideContent
+            roomTables={roomTables}
+            activeRoomName={activeRoom?.name ?? ''}
+            selectedTable={selectedTable ?? undefined}
+            inspectorOpen={state.inspectorOpen}
+            onUpdateTable={handleUpdateTable}
+            onDeleteTable={handleDeleteTable}
+            onCloseInspector={() => dispatch({ type: 'CLEAR_SELECTION' })}
+          />
         </div>
       </div>
+
+      {/* Mobile info panel overlay — portal sur body pour couvrir tout le screen */}
+      {infoPanelOpen && createPortal(
+        <div className="lk-floorplan-info-overlay" onClick={() => setInfoPanelOpen(false)}>
+          <div className="lk-floorplan-info-panel" onClick={e => e.stopPropagation()}>
+            <FloorplanSideContent
+              roomTables={roomTables}
+              activeRoomName={activeRoom?.name ?? ''}
+              selectedTable={selectedTable ?? undefined}
+              inspectorOpen={state.inspectorOpen}
+              onUpdateTable={handleUpdateTable}
+              onDeleteTable={handleDeleteTable}
+              onCloseInspector={() => dispatch({ type: 'CLEAR_SELECTION' })}
+            />
+          </div>
+        </div>,
+        document.body,
+      )}
+
+      {/* Table editor modal — portal, independant de la modale info */}
+      {editTable && createPortal(
+        <div className="lk-floorplan-edit-overlay" onClick={() => setEditTableId(null)}>
+          <div className="lk-floorplan-edit-panel" onClick={e => e.stopPropagation()}>
+            <TableInspector
+              table={editTable}
+              onUpdate={handleUpdateTable}
+              onDelete={(id) => { handleDeleteTable(id); setEditTableId(null); }}
+              onClose={() => setEditTableId(null)}
+            />
+          </div>
+        </div>,
+        document.body,
+      )}
 
       {state.mergeDialog && (
         <MergeDialog
@@ -410,6 +460,49 @@ export default function Floorplan() {
         />
       )}
     </div>
+  );
+}
+
+function FloorplanSideContent({ roomTables, activeRoomName, selectedTable, inspectorOpen, onUpdateTable, onDeleteTable, onCloseInspector }: {
+  roomTables: TableItem[];
+  activeRoomName: string;
+  selectedTable: TableItem | undefined;
+  inspectorOpen: boolean;
+  onUpdateTable: (id: string, updates: Partial<TableItem>) => void;
+  onDeleteTable: (id: string) => void;
+  onCloseInspector: () => void;
+}) {
+  return (
+    <>
+      <ZoneCapacityCard tables={roomTables} roomName={activeRoomName} />
+
+      {inspectorOpen && selectedTable ? (
+        <TableInspector
+          table={selectedTable}
+          onUpdate={onUpdateTable}
+          onDelete={onDeleteTable}
+          onClose={onCloseInspector}
+        />
+      ) : (
+        <Card padded={false} className="lk-floorplan-hint-card">
+          <div className="lk-floorplan-hint-inner">
+            <Info size={16} className="lk-floorplan-hint-icon" />
+            <div className="lk-floorplan-hint-text">
+              Cliquez sur une table pour la modifier. Glissez-la pour la repositionner. <Kbd>Shift</Kbd>+clic pour selectionner plusieurs tables.
+            </div>
+          </div>
+        </Card>
+      )}
+
+      <Card padded={false} className="lk-floorplan-shortcuts-card">
+        <div className="lk-floorplan-shortcuts-title">Raccourcis</div>
+        <div className="lk-floorplan-shortcuts-list">
+          <KbdRow label="Zoom"><Kbd>Scroll</Kbd></KbdRow>
+          <KbdRow label="Deplacer le plan"><Kbd>Clic</Kbd>+<Kbd>Drag</Kbd></KbdRow>
+          <KbdRow label="Multi-selection"><Kbd>Shift</Kbd>+<Kbd>Clic</Kbd></KbdRow>
+        </div>
+      </Card>
+    </>
   );
 }
 
