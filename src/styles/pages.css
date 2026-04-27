@@ -1027,6 +1027,9 @@
   font-size: var(--fs-sm);
   font-weight: 600;
 }
+.lk-hours-day-count-short {
+  display: none;
+}
 
 .lk-hours-day-times {
   font-size: var(--fs-xs);
@@ -1049,10 +1052,27 @@
 
 /* ── Day editor + preview ── */
 
-.lk-hours-editor-grid {
+.lk-hours-layout {
   display: grid;
   grid-template-columns: 1fr 320px;
-  gap: 16px;
+  grid-template-rows: auto auto;
+  gap: 14px;
+}
+
+/* Desktop: preview en colonne droite, span les 2 lignes */
+.lk-hours-layout > .lk-hours-preview-card {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+
+.lk-hours-layout > .lk-hours-week-strip {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.lk-hours-layout > .lk-hours-editor-card {
+  grid-column: 1;
+  grid-row: 2;
 }
 
 .lk-hours-editor-card {
@@ -1143,6 +1163,8 @@
   background: transparent;
   outline: none;
   color: var(--lk-text-primary);
+  flex: 1;
+  min-width: 0;
 }
 
 .lk-hours-svc-delete-btn {
@@ -1154,6 +1176,7 @@
   background: none;
   border: none;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .lk-hours-svc-fields {
@@ -1257,6 +1280,67 @@
   background: var(--lk-primary);
   border-radius: 3px;
   opacity: 0.85;
+}
+
+/* ── Hours — Responsive ── */
+
+@media (max-width: 850px) {
+  .lk-hours-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* Recap en pole position */
+  .lk-hours-layout > .lk-hours-preview-card {
+    order: -1;
+  }
+
+  .lk-hours-week-grid {
+    display: flex;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .lk-hours-day-btn {
+    flex: 1;
+    min-width: 0;
+    padding: 10px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .lk-hours-day-count-full,
+  .lk-hours-day-times,
+  .lk-hours-day-closed-text {
+    display: none;
+  }
+
+  .lk-hours-day-count-short {
+    display: inline;
+  }
+
+  .lk-hours-svc-fields {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .lk-hours-editor-header {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .lk-hours-bar {
+    display: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .lk-hours-svc-fields {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* ─── Widget ───────────────────────────────────────────────────────────────── */

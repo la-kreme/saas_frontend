@@ -78,14 +78,21 @@ export default function Hours() {
       if (i !== dayIdx) return d;
       const willBeDisabled = d.enabled;
       if (willBeDisabled) {
+        // Desactiver : marquer les services existants pour suppression
         d.services.forEach(s => {
           if (s.id) setDeletedIds(prevIds => [...prevIds, s.id!]);
         });
+        return { ...d, enabled: false, services: [makeService()] };
+      } else {
+        // Reactiver : restaurer les services originaux et retirer des deletedIds
+        const orig = originalDays[dayIdx];
+        if (orig.enabled && orig.services.length > 0) {
+          const origIds = orig.services.map(s => s.id).filter(Boolean) as string[];
+          setDeletedIds(prevIds => prevIds.filter(id => !origIds.includes(id)));
+          return { ...d, enabled: true, services: JSON.parse(JSON.stringify(orig.services)) };
+        }
+        return { ...d, enabled: true };
       }
-      return {
-        ...d, enabled: !d.enabled,
-        services: willBeDisabled ? [makeService()] : d.services,
-      };
     }));
     setSuccess('');
   };
@@ -201,43 +208,81 @@ export default function Hours() {
       {error && <p className="form-error lk-margin-y-sm">{error}</p>}
       {success && <p className="lk-text-success lk-margin-y-sm">{success}</p>}
 
-      {/* Week strip */}
-      <Card padded={false} className="lk-hours-week-strip">
-        <div className="lk-hours-week-grid">
-          {DAYS.map((dayName, i) => {
-            const d = days[i];
-            const isActive = i === activeDay;
+      {/* Main layout — order controlled via CSS for mobile */}
+      <div className="lk-hours-layout">
+        {/* Week preview — order -1 in mobile to be on top */}
+        <Card padded={false} className="lk-hours-preview-card">
+          <div className="lk-hours-preview-title">
+            Apercu de la semaine
+          </div>
+          <p className="lk-hours-preview-desc">
+            Chaque bloc represente un service.
+          </p>
+          {DAYS.map((d, i) => {
+            const cfg = days[i];
             return (
-              <button
-                key={i}
-                onClick={() => setActiveDay(i)}
-                className={`lk-hours-day-btn ${isActive ? 'lk-hours-day-btn--active' : 'lk-hours-day-btn--inactive'} ${i < 6 ? 'lk-hours-day-border-right' : ''}`}
-              >
-                <div className={`lk-hours-day-label ${isActive ? 'lk-hours-day-label--active' : 'lk-hours-day-label--inactive'}`}>
-                  {dayName.slice(0, 3)}
+              <div key={d} className="lk-hours-preview-row">
+                <div className="lk-hours-preview-day-label">
+                  {d.slice(0, 3)}
                 </div>
-                {d.enabled ? (
-                  <>
-                    <div className="lk-hours-day-count">
-                      {d.services.length} service{d.services.length > 1 ? 's' : ''}
-                    </div>
-                    <div className="lk-hours-day-times">
-                      {d.services[0]?.open_time}–{d.services[d.services.length - 1]?.close_time}
-                    </div>
-                  </>
-                ) : (
-                  <div className="lk-hours-day-closed">
-                    <Lock size={11} strokeWidth={2} /> Ferme
-                  </div>
-                )}
-              </button>
+                <div className="lk-hours-preview-bar">
+                  {cfg.enabled && cfg.services.map((s, si) => {
+                    const start = timeToFrac(s.open_time);
+                    const end = timeToFrac(s.close_time);
+                    return (
+                      <div
+                        key={si}
+                        className="lk-hours-preview-block"
+                        style={{
+                          left: `${start * 100}%`,
+                          width: `${(end - start) * 100}%`,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
             );
           })}
-        </div>
-      </Card>
+        </Card>
 
-      {/* Day editor + week preview */}
-      <div className="lk-hours-editor-grid">
+        {/* Week strip */}
+        <Card padded={false} className="lk-hours-week-strip">
+          <div className="lk-hours-week-grid">
+            {DAYS.map((dayName, i) => {
+              const d = days[i];
+              const isActive = i === activeDay;
+              return (
+                <button
+                  key={i}
+                  onClick={() => setActiveDay(i)}
+                  className={`lk-hours-day-btn ${isActive ? 'lk-hours-day-btn--active' : 'lk-hours-day-btn--inactive'} ${i < 6 ? 'lk-hours-day-border-right' : ''}`}
+                >
+                  <div className={`lk-hours-day-label ${isActive ? 'lk-hours-day-label--active' : 'lk-hours-day-label--inactive'}`}>
+                    {dayName.slice(0, 3)}
+                  </div>
+                  {d.enabled ? (
+                    <>
+                      <div className="lk-hours-day-count">
+                        <span className="lk-hours-day-count-full">{d.services.length} service{d.services.length > 1 ? 's' : ''}</span>
+                        <span className="lk-hours-day-count-short">{d.services.length}</span>
+                      </div>
+                      <div className="lk-hours-day-times">
+                        {d.services[0]?.open_time}–{d.services[d.services.length - 1]?.close_time}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="lk-hours-day-closed">
+                      <span className="lk-hours-day-closed-icon"><Lock size={11} strokeWidth={2} /></span>
+                      <span className="lk-hours-day-closed-text"> Ferme</span>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </Card>
+
         {/* Day editor */}
         <Card padded={false} className="lk-hours-editor-card">
           <div className="lk-hours-editor-header">
@@ -284,42 +329,6 @@ export default function Hours() {
               </button>
             </div>
           )}
-        </Card>
-
-        {/* Week preview */}
-        <Card padded={false} className="lk-hours-preview-card">
-          <div className="lk-hours-preview-title">
-            Apercu de la semaine
-          </div>
-          <p className="lk-hours-preview-desc">
-            Chaque bloc represente un service.
-          </p>
-          {DAYS.map((d, i) => {
-            const cfg = days[i];
-            return (
-              <div key={d} className="lk-hours-preview-row">
-                <div className="lk-hours-preview-day-label">
-                  {d.slice(0, 3)}
-                </div>
-                <div className="lk-hours-preview-bar">
-                  {cfg.enabled && cfg.services.map((s, si) => {
-                    const start = timeToFrac(s.open_time);
-                    const end = timeToFrac(s.close_time);
-                    return (
-                      <div
-                        key={si}
-                        className="lk-hours-preview-block"
-                        style={{
-                          left: `${start * 100}%`,
-                          width: `${(end - start) * 100}%`,
-                        }}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
         </Card>
       </div>
     </div>
