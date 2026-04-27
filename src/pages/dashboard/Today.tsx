@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Calendar, Users, Clock, CheckCircle2, Loader2, Sparkles, ArrowRight,
+  Calendar, Users, Clock, CheckCircle2, Loader2, Sparkles, ArrowRight, ChevronDown,
 } from 'lucide-react';
 import { getMyReservations, getMyTables, getMyHours, type ReservationItem, type TableItem, type OpeningHoursItem } from '../../lib/api';
 import { PageHeader, KpiCard, Card, Badge, StatusPill, Avatar, EmptyState, Button } from '../../components/ui';
@@ -209,6 +209,10 @@ function parseHour(timeStr: string): number {
   return parseInt(timeStr.split(':')[0]);
 }
 
+function fmtTime(timeStr: string): string {
+  return timeStr.slice(0, 5);
+}
+
 function TimelineView({ reservations, hours, today }: { reservations: ReservationItem[]; hours: OpeningHoursItem[]; today: string }) {
   // Filtrer les services actifs du jour
   const dayOfWeek = new Date(today).getDay();
@@ -217,9 +221,11 @@ function TimelineView({ reservations, hours, today }: { reservations: Reservatio
   const todayServices = hours
     .filter(h => h.day_of_week === backendDow && h.is_active)
     .map(h => ({
-      name: h.service_name || `Service ${h.open_time}–${h.close_time}`,
+      name: h.service_name || 'Service',
       from: parseHour(h.open_time),
       to: parseHour(h.close_time),
+      fromLabel: fmtTime(h.open_time),
+      toLabel: fmtTime(h.close_time),
       icon: parseHour(h.open_time) < 16 ? '\u2600' : '\u263E',
     }));
 
@@ -233,45 +239,69 @@ function TimelineView({ reservations, hours, today }: { reservations: Reservatio
 
   return (
     <div>
-      {todayServices.map(svc => {
-        const svcResas = reservations.filter(r => {
-          const h = parseInt(r.reservation_time.slice(0, 2));
-          return h >= svc.from && h < svc.to;
-        });
-        const svcCovers = svcResas.filter(r => r.status !== 'cancelled').reduce((s, r) => s + r.party_size, 0);
-
-        return (
-          <div key={svc.name}>
-            <div className="lk-today-svc-header">
-              <div className="lk-today-svc-header-left">
-                <span className="lk-today-svc-icon">{svc.icon}</span>
-                <span className="lk-today-svc-name">{svc.name}</span>
-                <span className="lk-today-svc-hours">· {svc.from}h – {svc.to}h</span>
-              </div>
-              <span className="lk-today-svc-stats">
-                {svcResas.length} resa · {svcCovers} couv.
-              </span>
-            </div>
-            <TimelineTrack svc={svc} reservations={svcResas} />
-          </div>
-        );
-      })}
+      {todayServices.map(svc => (
+        <CollapsibleService key={svc.name} svc={svc} reservations={reservations} />
+      ))}
     </div>
   );
 }
 
-interface ServiceBlock { name: string; from: number; to: number; icon: string }
+interface ServiceBlock { name: string; from: number; to: number; fromLabel: string; toLabel: string; icon: string }
+
+function CollapsibleService({ svc, reservations }: { svc: ServiceBlock; reservations: ReservationItem[] }) {
+  const now = new Date();
+  const isFinished = now.getHours() >= svc.to;
+  const [collapsed, setCollapsed] = useState(isFinished);
+
+  const svcResas = reservations.filter(r => {
+    const h = parseInt(r.reservation_time.slice(0, 2));
+    return h >= svc.from && h < svc.to;
+  });
+  const svcCovers = svcResas.filter(r => r.status !== 'cancelled').reduce((s, r) => s + r.party_size, 0);
+
+  return (
+    <div>
+      <button
+        className="lk-today-svc-header"
+        onClick={() => setCollapsed(c => !c)}
+        type="button"
+      >
+        <div className="lk-today-svc-header-left">
+          <ChevronDown
+            size={14}
+            strokeWidth={2}
+            className={`lk-today-svc-chevron${collapsed ? ' lk-today-svc-chevron--collapsed' : ''}`}
+          />
+          <span className="lk-today-svc-icon">{svc.icon}</span>
+          <span className="lk-today-svc-name">{svc.name}</span>
+          <span className="lk-today-svc-hours">· {svc.fromLabel} – {svc.toLabel}</span>
+          {isFinished && <span className="lk-today-svc-finished">Termine</span>}
+        </div>
+        <span className="lk-today-svc-stats">
+          {svcResas.length} resa · {svcCovers} couv.
+        </span>
+      </button>
+      {!collapsed && <TimelineTrack svc={svc} reservations={svcResas} />}
+    </div>
+  );
+}
 
 function TimelineTrack({ svc, reservations }: { svc: ServiceBlock; reservations: ReservationItem[] }) {
-  const hours: number[] = [];
-  for (let h = svc.from; h < svc.to; h++) hours.push(h);
+  // Echelle : heures entieres de from a to+1 (pour couvrir les minutes de fin)
+  const scaleEnd = svc.to + 1;
+  const hourMarks: number[] = [];
+  for (let h = svc.from; h <= scaleEnd; h++) hourMarks.push(h);
+  const totalHours = scaleEnd - svc.from;
+
+  // Position en % sur la barre : (heure - from) / totalHours * 100
+  const pct = (hour: number, minute = 0) => ((hour - svc.from) + minute / 60) / totalHours * 100;
 
   return (
     <div className="lk-today-track-wrap">
       {/* Hour scale */}
       <div className="lk-today-track-scale">
-        {hours.map((h, i) => (
-          <div key={h} className="lk-today-track-hour" style={{ left: `${(i / hours.length) * 100}%` }}>
+        {hourMarks.map(h => (
+          <div key={h} className="lk-today-track-hour" style={{ left: `${pct(h)}%` }}>
             {h}h
           </div>
         ))}
@@ -282,8 +312,8 @@ function TimelineTrack({ svc, reservations }: { svc: ServiceBlock; reservations:
         className="lk-today-track"
         style={{ height: reservations.length === 0 ? 60 : Math.max(60, reservations.length * 38 + 12) }}
       >
-        {hours.map((h, i) => i > 0 && (
-          <div key={h} className="lk-today-track-divider" style={{ left: `${(i / hours.length) * 100}%` }} />
+        {hourMarks.map(h => h > svc.from && (
+          <div key={h} className="lk-today-track-divider" style={{ left: `${pct(h)}%` }} />
         ))}
 
         {reservations.length === 0 ? (
@@ -293,8 +323,8 @@ function TimelineTrack({ svc, reservations }: { svc: ServiceBlock; reservations:
         ) : (
           reservations.map((r, idx) => {
             const [hh, mm] = r.reservation_time.split(':').map(Number);
-            const left = ((hh - svc.from) + mm / 60) / hours.length * 100;
-            const width = (r.party_size >= 5 ? 1.5 : r.party_size >= 3 ? 1.25 : 1) / hours.length * 100;
+            const left = pct(hh, mm);
+            const width = (r.party_size >= 5 ? 1.5 : r.party_size >= 3 ? 1.25 : 1) / totalHours * 100;
             const top = 6 + idx * 38;
             const fullName = `${r.guest_first_name} ${r.guest_last_name}`.trim();
             const tone = r.status === 'confirmed'
