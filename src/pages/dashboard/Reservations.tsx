@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  CalendarDays, Loader2, Check, X, Plus, Search, Users, MoreHorizontal,
+  CalendarDays, Loader2, Check, X, Search, Users, MoreHorizontal,
 } from 'lucide-react';
 import {
   getMyReservations, updateReservationStatus, createAdminReservation,
@@ -117,11 +117,6 @@ export default function Reservations() {
       <PageHeader
         title="Reservations"
         subtitle="Historique et gestion de toutes vos reservations."
-        right={
-          <Button variant="primary" size="md" icon={<Plus size={14} strokeWidth={2.4} />} onClick={() => setModalOpen(true)}>
-            Nouvelle resa
-          </Button>
-        }
       />
 
       {error && <p className="form-error lk-margin-y-sm">{error}</p>}
@@ -252,49 +247,63 @@ function ReservationGridRow({ resa, isLast, actionLoading, onStatusChange }: {
 }) {
   const fullName = `${resa.guest_first_name} ${resa.guest_last_name}`.trim();
   const past = isPast(resa);
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <div
-      className={`lk-resa-grid-row${past ? ' lk-resa-grid-row--past' : ''}`}
-      style={{
-        gridTemplateColumns: RESA_GRID,
-        borderBottom: isLast ? 'none' : '1px solid var(--lk-border)',
-      }}
+      className={`lk-resa-grid-wrapper${past ? ' lk-resa-grid-row--past' : ''}`}
+      style={{ borderBottom: isLast ? 'none' : '1px solid var(--lk-border)' }}
     >
-      <span className="lk-resa-grid-date">
-        {fmtDateShort(resa.reservation_date)}
-      </span>
+      <div
+        className="lk-resa-grid-row"
+        style={{ gridTemplateColumns: RESA_GRID }}
+        onClick={() => setExpanded(e => !e)}
+      >
+        <span className="lk-resa-grid-date">
+          {fmtDateShort(resa.reservation_date)}
+        </span>
 
-      <span className="lk-resa-grid-time">
-        {resa.reservation_time.slice(0, 5)}
-      </span>
+        <span className="lk-resa-grid-time">
+          {resa.reservation_time.slice(0, 5)}
+        </span>
 
-      <div className="lk-resa-grid-client">
-        <Avatar name={fullName || 'A'} size={28} />
-        <div className="lk-resa-grid-client-info">
-          <div className="lk-resa-grid-client-name">
-            {fullName || 'Sans nom'}
+        <div className="lk-resa-grid-client">
+          <Avatar name={fullName || 'A'} size={28} />
+          <div className="lk-resa-grid-client-info">
+            <div className="lk-resa-grid-client-name">
+              {fullName || 'Sans nom'}
+            </div>
+            <div className="lk-resa-grid-client-email">{resa.guest_email}</div>
           </div>
-          <div className="lk-resa-grid-client-email">{resa.guest_email}</div>
+        </div>
+
+        <span className="lk-resa-grid-pax">
+          <Users size={12} strokeWidth={2} className="lk-icon-muted" />{resa.party_size}
+        </span>
+
+        <div className="lk-resa-grid-notes">
+          {resa.notes || '—'}
+        </div>
+
+        <StatusPill status={resa.status} />
+
+        <div onClick={e => e.stopPropagation()}>
+          {actionLoading ? (
+            <Loader2 size={14} className="lk-spinner--muted" />
+          ) : (
+            <RowActions resa={resa} onStatusChange={onStatusChange} />
+          )}
         </div>
       </div>
 
-      <span className="lk-resa-grid-pax">
-        <Users size={12} strokeWidth={2} className="lk-icon-muted" />{resa.party_size}
-      </span>
-
-      <div className="lk-resa-grid-notes">
-        {resa.notes || '—'}
-      </div>
-
-      <StatusPill status={resa.status} />
-
-      <div>
-        {actionLoading ? (
-          <Loader2 size={14} className="lk-spinner--muted" />
-        ) : (
-          <RowActions resa={resa} onStatusChange={onStatusChange} />
-        )}
-      </div>
+      {expanded && (
+        <div className="lk-resa-grid-expand">
+          <span className="lk-resa-mobile-code">#{resa.confirmation_code}</span>
+          {resa.guest_email && <a href={`mailto:${resa.guest_email}`} className="lk-resa-mobile-link">{resa.guest_email}</a>}
+          {resa.guest_phone && <a href={`tel:${resa.guest_phone}`} className="lk-resa-mobile-link">{resa.guest_phone}</a>}
+          {resa.notes && <span className="lk-resa-expand-notes">{resa.notes}</span>}
+        </div>
+      )}
     </div>
   );
 }
@@ -330,10 +339,13 @@ function MobileResaCard({ resa, isLast, actionLoading, onStatusChange }: {
 }) {
   const fullName = `${resa.guest_first_name} ${resa.guest_last_name}`.trim();
   const past = isPast(resa);
+  const [expanded, setExpanded] = useState(false);
+
   return (
     <div
       className={`lk-resa-mobile-card${past ? ' lk-resa-grid-row--past' : ''}`}
       style={{ borderBottom: isLast ? 'none' : '1px solid var(--lk-border)' }}
+      onClick={() => setExpanded(e => !e)}
     >
       <div className="lk-resa-mobile-top">
         <div className="lk-resa-mobile-left">
@@ -341,22 +353,28 @@ function MobileResaCard({ resa, isLast, actionLoading, onStatusChange }: {
           <div>
             <div className="lk-resa-mobile-name">{fullName || 'Sans nom'}</div>
             <div className="lk-resa-mobile-meta">
-              {resa.party_size} pers. · {new Date(resa.reservation_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} a {resa.reservation_time.slice(0, 5)}
+              {resa.party_size} pers. · {fmtDateShort(resa.reservation_date)} a {resa.reservation_time.slice(0, 5)}
             </div>
           </div>
         </div>
-        <StatusPill status={resa.status} />
+        <div className="lk-resa-mobile-right">
+          <StatusPill status={resa.status} />
+          <div className="lk-resa-mobile-actions" onClick={e => e.stopPropagation()}>
+            {actionLoading ? (
+              <Loader2 size={14} className="lk-spinner--muted" />
+            ) : (
+              <RowActions resa={resa} onStatusChange={onStatusChange} />
+            )}
+          </div>
+        </div>
       </div>
-      <div className="lk-resa-mobile-bottom">
-        <span className="lk-resa-mobile-code">
-          #{resa.confirmation_code}
-        </span>
-        {actionLoading ? (
-          <Loader2 size={14} className="lk-spinner--muted" />
-        ) : (
-          <RowActions resa={resa} onStatusChange={onStatusChange} />
-        )}
-      </div>
+      {expanded && (
+        <div className="lk-resa-mobile-expand" onClick={e => e.stopPropagation()}>
+          <span className="lk-resa-mobile-code">#{resa.confirmation_code}</span>
+          {resa.guest_email && <a href={`mailto:${resa.guest_email}`} className="lk-resa-mobile-link">{resa.guest_email}</a>}
+          {resa.guest_phone && <a href={`tel:${resa.guest_phone}`} className="lk-resa-mobile-link">{resa.guest_phone}</a>}
+        </div>
+      )}
     </div>
   );
 }
