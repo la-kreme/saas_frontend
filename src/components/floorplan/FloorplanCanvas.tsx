@@ -2,7 +2,7 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import { ZoomIn, ZoomOut, Maximize, RotateCcw } from 'lucide-react';
 import type { TableItem, Room, Merge } from '../../lib/types';
 import { TableShape } from './TableShape';
-import { tableDisplaySize } from '../../lib/floorplan/geometry';
+import { tableDisplaySize, tableRotatedBBox } from '../../lib/floorplan/geometry';
 
 interface Props {
   room: Room;
@@ -86,8 +86,14 @@ export function FloorplanCanvas({
   const [isPanning, setIsPanning] = useState(false);
 
   const PAD = 40;
-  const contentW = tables.reduce((max, t) => Math.max(max, t.pos_x + tableDisplaySize(t.seats).w), room.canvas_width);
-  const contentH = tables.reduce((max, t) => Math.max(max, t.pos_y + tableDisplaySize(t.seats).h), room.canvas_height);
+  const contentW = tables.reduce((max, t) => {
+    const bb = tableRotatedBBox(t);
+    return Math.max(max, bb.x + bb.w);
+  }, room.canvas_width);
+  const contentH = tables.reduce((max, t) => {
+    const bb = tableRotatedBBox(t);
+    return Math.max(max, bb.y + bb.h);
+  }, room.canvas_height);
   const baseW = contentW + PAD;
   const baseH = contentH + PAD;
 
@@ -123,22 +129,25 @@ export function FloorplanCanvas({
     setZoom(newZoom);
   }, [zoom, baseW, baseH]);
 
-  // Pinch-to-zoom (mobile touch)
+  // Pinch-to-zoom (mobile touch) — ne s'active que pour 2 doigts simultanes
   const lastPinchDist = useRef<number | null>(null);
+  const pinchActive = useRef(false);
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
 
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
+        // Activer le pinch seulement si aucun pointer capture en cours (pas de drag table)
         const dx = e.touches[0].clientX - e.touches[1].clientX;
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         lastPinchDist.current = Math.hypot(dx, dy);
+        pinchActive.current = true;
       }
     };
 
     const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length !== 2 || lastPinchDist.current === null) return;
+      if (!pinchActive.current || e.touches.length !== 2 || lastPinchDist.current === null) return;
       e.preventDefault();
       const dx = e.touches[0].clientX - e.touches[1].clientX;
       const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -156,7 +165,12 @@ export function FloorplanCanvas({
       });
     };
 
-    const onTouchEnd = () => { lastPinchDist.current = null; };
+    const onTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        lastPinchDist.current = null;
+        pinchActive.current = false;
+      }
+    };
 
     svg.addEventListener('touchstart', onTouchStart, { passive: false });
     svg.addEventListener('touchmove', onTouchMove, { passive: false });

@@ -2,28 +2,73 @@ const TABLE_UNIT = 80;
 
 /**
  * Taille visuelle d'une table en fonction du nombre de couverts.
- * 2 couverts = 80×80. 4 = 160×80 (2 unités collées sur la largeur).
- * 6 = 240×80, etc. Retourne { w, h }.
+ * 2 couverts = 80x80. 4 = 160x80 (2 unites collees sur la largeur).
  */
 export function tableDisplaySize(seats: number): { w: number; h: number } {
   const units = Math.max(1, Math.ceil(seats / 2));
   return { w: TABLE_UNIT * units, h: TABLE_UNIT };
 }
 
-/** Snap-to-grid à 10px */
+/** Bounding box d'une table apres rotation (en SVG user space). */
+export function tableRotatedBBox(t: { pos_x: number; pos_y: number; seats: number; rotation?: number }): {
+  x: number; y: number; w: number; h: number;
+} {
+  const { w, h } = tableDisplaySize(t.seats);
+  const rot = t.rotation ?? 0;
+  if (rot === 0) return { x: t.pos_x, y: t.pos_y, w, h };
+
+  const cx = t.pos_x + w / 2;
+  const cy = t.pos_y + h / 2;
+  const rad = (rot * Math.PI) / 180;
+  const cos = Math.cos(rad);
+  const sin = Math.sin(rad);
+
+  const corners = [
+    { x: t.pos_x, y: t.pos_y },
+    { x: t.pos_x + w, y: t.pos_y },
+    { x: t.pos_x + w, y: t.pos_y + h },
+    { x: t.pos_x, y: t.pos_y + h },
+  ];
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const c of corners) {
+    const dx = c.x - cx;
+    const dy = c.y - cy;
+    const rx = cx + dx * cos - dy * sin;
+    const ry = cy + dx * sin + dy * cos;
+    minX = Math.min(minX, rx);
+    minY = Math.min(minY, ry);
+    maxX = Math.max(maxX, rx);
+    maxY = Math.max(maxY, ry);
+  }
+  return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+}
+
+/** Snap-to-grid a 10px */
 export const GRID_SIZE = 10;
 
 export function snapToGrid(value: number): number {
   return Math.round(value / GRID_SIZE) * GRID_SIZE;
 }
 
+/** Clamp une position dans les bounds du canvas. */
+export function clampPosition(
+  x: number, y: number,
+  tableW: number, tableH: number,
+  canvasW: number, canvasH: number,
+): { x: number; y: number } {
+  return {
+    x: Math.max(0, Math.min(x, canvasW - tableW)),
+    y: Math.max(0, Math.min(y, canvasH - tableH)),
+  };
+}
+
 /**
  * Trouve une position libre sur le canvas en scannant une grille.
- * Parcourt colonne par colonne (spacing de 100px) puis ligne par ligne,
- * et retourne la première case qui ne chevauche aucune table existante.
+ * Tient compte de la rotation des tables existantes.
  */
 export function findFreePosition(
-  existing: { pos_x: number; pos_y: number; seats: number }[],
+  existing: { pos_x: number; pos_y: number; seats: number; rotation?: number }[],
   canvasWidth: number,
   canvasHeight: number,
   newSeats = 4,
@@ -35,18 +80,18 @@ export function findFreePosition(
   for (let y = 40; y + newSize.h <= canvasHeight; y += step) {
     for (let x = 40; x + newSize.w <= canvasWidth; x += step) {
       const overlaps = existing.some(t => {
-        const ts = tableDisplaySize(t.seats);
+        const bb = tableRotatedBBox(t);
         return (
-          x < t.pos_x + ts.w &&
-          x + newSize.w > t.pos_x &&
-          y < t.pos_y + ts.h &&
-          y + newSize.h > t.pos_y
+          x < bb.x + bb.w &&
+          x + newSize.w > bb.x &&
+          y < bb.y + bb.h &&
+          y + newSize.h > bb.y
         );
       });
       if (!overlaps) return { x, y };
     }
   }
-  const maxY = existing.reduce((m, t) => Math.max(m, t.pos_y + tableDisplaySize(t.seats).h), 0);
+  const maxY = existing.reduce((m, t) => Math.max(m, t.pos_y + tableRotatedBBox(t).h), 0);
   return { x: 40, y: maxY + pad };
 }
 

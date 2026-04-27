@@ -9,7 +9,7 @@ import {
 } from '../../lib/api';
 import type { TableItem, Room, MergePreview } from '../../lib/types';
 import { useFloorplanState } from '../../lib/floorplan/useFloorplanState';
-import { snapToGrid, findFreePosition } from '../../lib/floorplan/geometry';
+import { snapToGrid, findFreePosition, tableDisplaySize, clampPosition } from '../../lib/floorplan/geometry';
 import { FloorplanCanvas } from '../../components/floorplan/FloorplanCanvas';
 import { RoomTabs } from '../../components/floorplan/RoomTabs';
 import { RoomConfigDrawer } from '../../components/floorplan/RoomConfigDrawer';
@@ -82,19 +82,23 @@ export default function Floorplan() {
   };
 
   const handleDrag = (id: string, x: number, y: number) => {
-    dispatch({ type: 'DRAG_TABLE', id, pos_x: x, pos_y: y });
+    // Clamp dans les bounds du canvas
+    const table = state.tables.find(t => t.id === id);
+    if (!table) return;
+    const { w, h } = tableDisplaySize(table.seats);
+    const clamped = clampPosition(x, y, w, h, activeRoom?.canvas_width ?? 1200, activeRoom?.canvas_height ?? 800);
+    dispatch({ type: 'DRAG_TABLE', id, pos_x: clamped.x, pos_y: clamped.y });
   };
 
   const handleDragEnd = (id: string) => {
     const table = state.tables.find(t => t.id === id);
-    if (table) {
-      dispatch({
-        type: 'DRAG_TABLE',
-        id,
-        pos_x: snapToGrid(table.pos_x),
-        pos_y: snapToGrid(table.pos_y),
-      });
-    }
+    if (!table) return;
+    const { w, h } = tableDisplaySize(table.seats);
+    const snapped = clampPosition(
+      snapToGrid(table.pos_x), snapToGrid(table.pos_y),
+      w, h, activeRoom?.canvas_width ?? 1200, activeRoom?.canvas_height ?? 800,
+    );
+    dispatch({ type: 'DRAG_TABLE', id, pos_x: snapped.x, pos_y: snapped.y });
   };
 
   const handleAddTable = async () => {
