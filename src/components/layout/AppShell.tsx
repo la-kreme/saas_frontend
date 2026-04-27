@@ -8,6 +8,7 @@ import { OnboardingTourProvider } from '../../contexts/OnboardingTourContext';
 import { TourBanner } from './TourBanner';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
+import { CreateReservationModal } from '../ui/CreateReservationModal';
 
 // ─── Dashboard Inner Shell ───────────────────────────────────────────────────
 
@@ -19,6 +20,7 @@ interface AppShellInnerProps {
 function AppShellInner({ restaurantName, hasLinkedPlace }: AppShellInnerProps) {
   const { user, supabase } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [newResaOpen, setNewResaOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut({ scope: 'global' });
@@ -56,6 +58,7 @@ function AppShellInner({ restaurantName, hasLinkedPlace }: AppShellInnerProps) {
         <Topbar
           restaurantName={restaurantName}
           onMobileMenuOpen={() => setIsMobileMenuOpen(true)}
+          onNewResa={() => setNewResaOpen(true)}
         />
 
         <main className="page-content">
@@ -63,6 +66,11 @@ function AppShellInner({ restaurantName, hasLinkedPlace }: AppShellInnerProps) {
           <Outlet />
         </main>
       </div>
+
+      <CreateReservationModal
+        open={newResaOpen}
+        onClose={() => setNewResaOpen(false)}
+      />
     </div>
   );
 }
