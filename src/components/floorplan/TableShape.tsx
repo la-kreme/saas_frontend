@@ -8,10 +8,13 @@ const BG_CARD = '#FFFFFF';
 interface Props {
   table: TableItem;
   selected: boolean;
+  showEditBtn?: boolean;
   onSelect: (id: string, additive: boolean) => void;
   onDrag: (id: string, x: number, y: number) => void;
   onDragEnd: (id: string) => void;
+  onEdit?: (id: string) => void;
   svgRef: React.RefObject<SVGSVGElement | null>;
+  mobile?: boolean;
 }
 
 /** Convert a screen point to SVG user-space coordinates via getScreenCTM. */
@@ -24,7 +27,7 @@ function clientToSvg(svg: SVGSVGElement, clientX: number, clientY: number) {
   return pt.matrixTransform(ctm.inverse());
 }
 
-export function TableShape({ table, selected, onSelect, onDrag, onDragEnd, svgRef }: Props) {
+export function TableShape({ table, selected, showEditBtn = false, onSelect, onDrag, onDragEnd, onEdit, svgRef, mobile }: Props) {
   const dragState = useRef<{ offsetX: number; offsetY: number } | null>(null);
 
   const handlePointerDown = (e: React.PointerEvent) => {
@@ -92,9 +95,9 @@ export function TableShape({ table, selected, onSelect, onDrag, onDragEnd, svgRe
       )}
       <text
         x={cx}
-        y={cy - 6}
+        y={cy - (mobile ? 8 : 6)}
         textAnchor="middle"
-        fontSize={12}
+        fontSize={mobile ? 18 : 12}
         fontWeight={600}
         fill={selected ? '#fff' : 'var(--lk-text-base)'}
       >
@@ -102,13 +105,55 @@ export function TableShape({ table, selected, onSelect, onDrag, onDragEnd, svgRe
       </text>
       <text
         x={cx}
-        y={cy + 10}
+        y={cy + (mobile ? 14 : 10)}
         textAnchor="middle"
-        fontSize={10}
+        fontSize={mobile ? 14 : 10}
         fill={selected ? 'rgba(255,255,255,0.9)' : 'var(--lk-text-muted)'}
       >
         {table.seats} pl.
       </text>
+
+      {/* Edit button — visible when selected */}
+      {selected && showEditBtn && onEdit && (() => {
+        const bx = table.pos_x + w - 24;
+        const by = table.pos_y - 4;
+        return (
+          <g
+            onClick={(e) => { e.stopPropagation(); onEdit(table.id); }}
+            style={{ cursor: 'pointer' }}
+          >
+            <rect
+              x={bx}
+              y={by}
+              width={26}
+              height={26}
+              rx={7}
+              fill={BG_CARD}
+              stroke={PRIMARY}
+              strokeWidth={1.5}
+            />
+            {/* Lucide Pencil icon — 24x24 viewBox, scaled to 14x14 */}
+            <g transform={`translate(${bx + 6}, ${by + 6}) scale(0.583)`}>
+              <path
+                d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"
+                fill="none"
+                stroke={PRIMARY}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="m15 5 4 4"
+                fill="none"
+                stroke={PRIMARY}
+                strokeWidth={2}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </g>
+          </g>
+        );
+      })()}
     </g>
   );
 }

@@ -1,5 +1,5 @@
-import { useRef, useState, useCallback } from 'react';
-import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
+import { useRef, useState, useCallback, useEffect } from 'react';
+import { ZoomIn, ZoomOut, Maximize, RotateCcw } from 'lucide-react';
 import type { TableItem, Room, Merge } from '../../lib/types';
 import { TableShape } from './TableShape';
 import { tableDisplaySize } from '../../lib/floorplan/geometry';
@@ -9,9 +9,11 @@ interface Props {
   tables: TableItem[];
   merges: Merge[];
   selectedIds: Set<string>;
+  mobile?: boolean;
   onSelect: (id: string, additive: boolean) => void;
   onDrag: (id: string, x: number, y: number) => void;
   onDragEnd: (id: string) => void;
+  onEdit?: (id: string) => void;
   onClearSelection: () => void;
 }
 
@@ -72,10 +74,12 @@ export function FloorplanCanvas({
   onSelect,
   onDrag,
   onDragEnd,
+  onEdit,
+  mobile = false,
   onClearSelection,
 }: Props) {
   const svgRef = useRef<SVGSVGElement>(null);
-  const [zoom, setZoom] = useState(1);
+  const [zoom, setZoom] = useState(mobile ? 2 : 1);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
   const panState = useRef<{ startX: number; startY: number; basePanX: number; basePanY: number } | null>(null);
@@ -119,6 +123,51 @@ export function FloorplanCanvas({
     setZoom(newZoom);
   }, [zoom, baseW, baseH]);
 
+  // Pinch-to-zoom (mobile touch)
+  const lastPinchDist = useRef<number | null>(null);
+  useEffect(() => {
+    const svg = svgRef.current;
+    if (!svg) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastPinchDist.current = Math.hypot(dx, dy);
+      }
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 2 || lastPinchDist.current === null) return;
+      e.preventDefault();
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const scale = dist / lastPinchDist.current;
+      lastPinchDist.current = dist;
+
+      setZoom(prev => {
+        const next = clampZoom(prev * scale);
+        const dw = baseW / prev - baseW / next;
+        const dh = baseH / prev - baseH / next;
+        setPanX(p => p + dw / 2);
+        setPanY(p => p + dh / 2);
+        return next;
+      });
+    };
+
+    const onTouchEnd = () => { lastPinchDist.current = null; };
+
+    svg.addEventListener('touchstart', onTouchStart, { passive: false });
+    svg.addEventListener('touchmove', onTouchMove, { passive: false });
+    svg.addEventListener('touchend', onTouchEnd);
+    return () => {
+      svg.removeEventListener('touchstart', onTouchStart);
+      svg.removeEventListener('touchmove', onTouchMove);
+      svg.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [baseW, baseH]);
+
   const zoomIn = () => {
     const newZoom = clampZoom(zoom + ZOOM_STEP);
     const dw = baseW / zoom - baseW / newZoom;
@@ -138,9 +187,20 @@ export function FloorplanCanvas({
   };
 
   const resetZoom = () => {
-    setZoom(1);
+    setZoom(mobile ? 2 : 1);
     setPanX(0);
     setPanY(0);
+  };
+
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const toggleFullscreen = () => {
+    const el = wrapRef.current;
+    if (!el) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      el.requestFullscreen();
+    }
   };
 
   // Pan : clic gauche sur le fond du canvas + déplacement
@@ -182,7 +242,7 @@ export function FloorplanCanvas({
   };
 
   return (
-    <div className="lk-fp-canvas-wrap">
+    <div className="lk-fp-canvas-wrap" ref={wrapRef}>
       <svg
         ref={svgRef}
         width="100%"
@@ -243,6 +303,9 @@ export function FloorplanCanvas({
             onSelect={onSelect}
             onDrag={onDrag}
             onDragEnd={onDragEnd}
+            onEdit={onEdit}
+            showEditBtn={mobile}
+            mobile={mobile}
             svgRef={svgRef}
           />
         ))}
@@ -256,14 +319,17 @@ export function FloorplanCanvas({
         <button
           className="btn btn-ghost btn-sm lk-fp-zoom-label"
           onClick={resetZoom}
-          title="Reinitialiser"
+          title="Reinitialiser le zoom"
         >
           {Math.round(zoom * 100)}%
         </button>
         <button className="btn btn-ghost btn-sm lk-fp-zoom-btn" onClick={zoomIn} title="Zoomer">
           <ZoomIn size={14} />
         </button>
-        <button className="btn btn-ghost btn-sm lk-fp-zoom-btn" onClick={resetZoom} title="Recentrer">
+        <button className="btn btn-ghost btn-sm lk-fp-zoom-btn" onClick={resetZoom} title="Reinitialiser">
+          <RotateCcw size={14} />
+        </button>
+        <button className="btn btn-ghost btn-sm lk-fp-zoom-btn" onClick={toggleFullscreen} title="Plein ecran">
           <Maximize size={14} />
         </button>
       </div>
