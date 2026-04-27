@@ -130,8 +130,8 @@ export default function Step1Link() {
         <h1 className="onboarding-step-title">Ma fiche restaurant</h1>
         <p className="onboarding-step-desc">
           {mode === 'search' 
-            ? "Recherchez votre établissement sur La Krème pour lier votre compte. C'est votre identifiant unique sur toute la plateforme."
-            : "Saisissez les informations de votre établissement pour créer sa fiche sur La Krème."}
+            ? "Recherchez votre établissement sur Koulis pour lier votre compte. C'est votre identifiant unique sur toute la plateforme."
+            : "Saisissez les informations de votre établissement pour créer sa fiche sur Koulis."}
         </p>
       </div>
 

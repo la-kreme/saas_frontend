@@ -103,7 +103,7 @@ export function LinkRestaurant({ onLinked, hideHeader }: LinkRestaurantProps) {
         <div className="onboarding-step-header" style={{ textAlign: 'left' }}>
           <h1 className="onboarding-step-title" style={{ fontSize: '20px' }}>Associer votre restaurant</h1>
           <p className="onboarding-step-desc">
-            Recherchez votre établissement sur La Krème pour lier votre compte. C'est votre identifiant unique sur toute la plateforme.
+            Recherchez votre établissement sur Koulis pour lier votre compte. C'est votre identifiant unique sur toute la plateforme.
           </p>
         </div>
       )}

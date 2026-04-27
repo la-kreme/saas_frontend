@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { getMyConfig } from './lib/api';
+import { env } from './lib/env';
 
 
 // Layout
@@ -23,10 +24,43 @@ import Step5Widget from './pages/onboarding/Step5Widget';
 import Today from './pages/dashboard/Today';
 import MyPage from './pages/dashboard/MyPage';
 import Reservations from './pages/dashboard/Reservations';
-import Tables from './pages/dashboard/Tables';
+import Floorplan from './pages/dashboard/Floorplan';
 import Hours from './pages/dashboard/Hours';
 import Widget from './pages/dashboard/Widget';
 import Settings from './pages/dashboard/Settings';
+
+// ─── Public redirect: /reserve/:token → reservation_service ──────────────────
+// The reservation page is served by the reservation_service backend, not the SaaS.
+// But if WIDGET_BASE_URL is set to koulis.app, shared links land here.
+// This component redirects to the actual backend without requiring auth.
+
+function ReserveRedirect() {
+  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const lang = searchParams.get('lang') || 'fr';
+    window.location.replace(`${env.apiUrl}/reserve/${token}?lang=${lang}`);
+  }, [token, searchParams]);
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="spinner" />
+    </div>
+  );
+}
+
+function WidgetRedirect() {
+  const { token } = useParams();
+  const [searchParams] = useSearchParams();
+  useEffect(() => {
+    const lang = searchParams.get('lang') || 'fr';
+    window.location.replace(`${env.apiUrl}/widget/${token}?lang=${lang}`);
+  }, [token, searchParams]);
+  return (
+    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="spinner" />
+    </div>
+  );
+}
 
 function RootRedirect() {
   const { user, loading } = useAuth();
@@ -58,7 +92,20 @@ function RootRedirect() {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) {
+    // Cross-domain redirect vers koulis.ai/login (Next.js)
+    const hostname = window.location.hostname;
+    let loginUrl: string;
+    if (hostname === 'localhost') {
+      loginUrl = 'http://localhost:3000/login';
+    } else if (hostname === 'staging.koulis.app') {
+      loginUrl = 'https://staging.koulis.ai/login';
+    } else {
+      loginUrl = 'https://koulis.ai/login';
+    }
+    window.location.href = loginUrl;
+    return null;
+  }
   return <Navigate to={destination!} replace />;
 }
 
@@ -72,6 +119,10 @@ export default function App() {
 
         {/* Auth */}
         <Route path="/login" element={<LoginRedirect />} />
+
+        {/* Public pages — redirect to reservation_service (no auth required) */}
+        <Route path="/reserve/:token" element={<ReserveRedirect />} />
+        <Route path="/widget/:token" element={<WidgetRedirect />} />
 
         {/* Onboarding (protégé) */}
         <Route element={<ProtectedRoute />}>
@@ -90,7 +141,8 @@ export default function App() {
             <Route path="/dashboard"              element={<Today />} />
             <Route path="/dashboard/my-page"       element={<MyPage />} />
             <Route path="/dashboard/reservations" element={<Reservations />} />
-            <Route path="/dashboard/tables"       element={<Tables />} />
+            <Route path="/dashboard/floorplan"    element={<Floorplan />} />
+            <Route path="/dashboard/tables"       element={<Navigate to="/dashboard/floorplan" replace />} />
             <Route path="/dashboard/hours"        element={<Hours />} />
             <Route path="/dashboard/widget"       element={<Widget />} />
             <Route path="/dashboard/settings"     element={<Settings />} />

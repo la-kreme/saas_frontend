@@ -16,7 +16,7 @@ export function OnboardingLayout() {
     <div className="onboarding-page">
       {/* Logo */}
       <div className="onboarding-logo">
-        <img src="/logo.png" alt="La Krème" style={{ height: '48px', width: 'auto' }} />
+        <img src="/logo.png" alt="Koulis" style={{ height: '48px', width: 'auto' }} />
       </div>
 
       {/* Step Progress (Hidden on step 1 since it can be skipped) */}
@@ -58,7 +58,7 @@ export function OnboardingLayout() {
 
       {/* Footer */}
       <p className="text-xs text-muted" style={{ marginTop: '24px' }}>
-        La Krème · Widget de Réservation · v1.0
+        Koulis · Widget de Réservation · v1.0
       </p>
     </div>
   );

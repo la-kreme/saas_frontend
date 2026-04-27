@@ -1,33 +1,28 @@
 import { useEffect } from 'react';
 
 /**
- * Redirige vers le frontend Angular pour le login OAuth.
+ * Redirige vers la page login Next.js (koulis.ai/login).
+ *
+ * Cross-domain : koulis.app → koulis.ai (TLDs differents).
  *
  * Mapping des environnements :
- * - localhost:5173  → localhost:4200 (dev)
- * - staging.koulis.app → staging.lakreme.fr (staging)
- * - koulis.app → lakreme.fr (prod)
- *
- * Le callback Angular passera la session via token-in-URL (hash fragment)
- * car .lakreme.fr et .koulis.app sont des TLDs différents — les cookies
- * ne peuvent pas être partagés directement.
+ * - localhost:5173  → localhost:3000/login (Next.js dev)
+ * - staging.koulis.app → staging.koulis.ai
+ * - koulis.app → koulis.ai
  */
 export default function LoginRedirect() {
   useEffect(() => {
     const hostname = window.location.hostname;
 
-    let mainAppUrl: string;
+    let loginUrl: string;
     if (hostname === 'localhost') {
-      mainAppUrl = 'http://localhost:4200';
+      loginUrl = 'http://localhost:3000/login';
     } else if (hostname === 'staging.koulis.app') {
-      mainAppUrl = 'https://staging.lakreme.fr';
+      loginUrl = 'https://staging.koulis.ai/login';
     } else {
-      // Production: koulis.app → lakreme.fr
-      mainAppUrl = 'https://lakreme.fr';
+      loginUrl = 'https://koulis.ai/login';
     }
-
-    const returnUrl = encodeURIComponent(window.location.origin + '/dashboard');
-    window.location.href = `${mainAppUrl}/auth/login?redirect=${returnUrl}`;
+    window.location.href = loginUrl;
   }, []);
 
   return (
@@ -40,7 +35,7 @@ export default function LoginRedirect() {
       gap: '16px',
     }}>
       <div className="spinner" />
-      <p className="text-sm text-muted">Redirection vers la connexion principale...</p>
+      <p className="text-sm text-muted">Redirection vers la connexion...</p>
     </div>
   );
 }

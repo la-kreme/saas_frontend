@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>le koulis · saas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ─── DESIGN TOKENS — extracted from la-kreme/koulis_frontend & saas_frontend ── */
+  :root {
+    /* Primary (rose) */
+    --lk-primary: #ED73A9;
+    --lk-primary-soft: #FBD0E4;
+    --lk-primary-medium: #D66E90;
+    --lk-primary-strong: #C6546D;
+    --lk-primary-glow: rgba(237, 115, 169, 0.25);
+    --lk-primary-tint: rgba(237, 115, 169, 0.08);
+
+    /* Secondary (sky blue) */
+    --lk-secondary: #7CC0E8;
+    --lk-secondary-medium: #5BADE0;
+    --lk-secondary-strong: #3D96D1;
+    --lk-ternary: #A6D1F1;
+    --lk-secondary-tint: rgba(124, 192, 232, 0.12);
+
+    /* Text */
+    --lk-text-primary: #152823;
+    --lk-text-secondary: #424746;
+    --lk-text-muted: #6B7B79;
+    --lk-text-inverse: #FFFFFF;
+
+    /* Status */
+    --lk-success: #22C55E;
+    --lk-success-tint: rgba(34, 197, 94, 0.12);
+    --lk-warning: #F59E0B;
+    --lk-warning-tint: rgba(245, 158, 11, 0.12);
+    --lk-error: #EF4444;
+    --lk-error-tint: rgba(239, 68, 68, 0.10);
+    --lk-info: #3B82F6;
+    --lk-info-tint: rgba(59, 130, 246, 0.10);
+
+    /* Surfaces — warm cream backdrop (matches landing) */
+    --lk-bg-main: #FFFBF5;
+    --lk-bg-card: #FFFFFF;
+    --lk-surface-1: #FFFBF5;
+    --lk-surface-2: #FAF6EE;
+    --lk-surface-3: #F2EDE2;
+
+    /* Borders */
+    --lk-border: #EDE8DF;
+    --lk-border-strong: #E0D9CB;
+    --lk-border-focus: rgba(237, 115, 169, 0.45);
+
+    /* Spacing */
+    --space-1: 4px;  --space-2: 8px;  --space-3: 12px;  --space-4: 16px;
+    --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px;
+    --space-12: 48px; --space-16: 64px;
+
+    /* Radii */
+    --radius-sm: 6px;
+    --radius: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-2xl: 28px;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-xs: 0 1px 2px rgba(20,40,35,0.04);
+    --shadow-sm: 0 2px 6px rgba(20,40,35,0.04);
+    --shadow: 0 6px 18px rgba(20,40,35,0.06);
+    --shadow-lg: 0 8px 28px rgba(20,40,35,0.08);
+    --shadow-xl: 0 20px 60px rgba(20,40,35,0.12);
+    --shadow-glow: 0 0 0 4px var(--lk-primary-soft);
+
+    /* Transitions */
+    --t-fast: 120ms ease;
+    --t: 200ms ease;
+    --t-slow: 350ms cubic-bezier(0.22, 1, 0.36, 1);
+
+    /* Layout */
+    --sidebar-w: 240px;
+    --sidebar-w-collapsed: 64px;
+    --topbar-h: 60px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    font-family: 'Poppins', -apple-system, 'Segoe UI', sans-serif;
+    background: var(--lk-bg-main);
+    color: var(--lk-text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body { min-height: 100vh; overflow: hidden; } /* the app handles its own scroll regions */
+  a { color: inherit; text-decoration: none; }
+  button { cursor: pointer; font-family: inherit; border: none; background: none; color: inherit; }
+  input, textarea, select { font-family: inherit; color: inherit; }
+  ::selection { background: var(--lk-primary-soft); color: var(--lk-text-primary); }
+
+  /* Custom scrollbars in app */
+  .lk-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+  .lk-scroll::-webkit-scrollbar-track { background: transparent; }
+  .lk-scroll::-webkit-scrollbar-thumb { background: var(--lk-border-strong); border-radius: 4px; }
+  .lk-scroll::-webkit-scrollbar-thumb:hover { background: var(--lk-text-muted); }
+
+  /* Animations */
+  @keyframes lk-fade-in { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes lk-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes lk-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--lk-primary-glow); }
+    50% { box-shadow: 0 0 0 6px transparent; }
+  }
+  @keyframes lk-spin { to { transform: rotate(360deg); } }
+  @keyframes lk-blink { 0%, 49% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+  .lk-animate-up { animation: lk-fade-up 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+  /* Logo "le koulis" — italic poppins, signature of the brand */
+  .lk-logo {
+    font-family: 'Poppins', sans-serif;
+    font-style: italic;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: var(--lk-primary);
+    line-height: 1;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    user-select: none;
+  }
+  .lk-logo .le { font-weight: 500; opacity: 0.85; }
+
+  /* Display heights for sandbox */
+  #app { width: 100vw; height: 100vh; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<!-- React + Babel -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Tweaks -->
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+
+<!-- App parts -->
+<script type="text/babel" src="src/icons.jsx"></script>
+<script type="text/babel" src="src/data.jsx"></script>
+<script type="text/babel" src="src/primitives.jsx"></script>
+<script type="text/babel" src="src/sidebar.jsx"></script>
+<script type="text/babel" src="src/topbar.jsx"></script>
+<script type="text/babel" src="src/screens/today.jsx"></script>
+<script type="text/babel" src="src/screens/reservations.jsx"></script>
+<script type="text/babel" src="src/screens/floor.jsx"></script>
+<script type="text/babel" src="src/screens/hours.jsx"></script>
+<script type="text/babel" src="src/screens/widget.jsx"></script>
+<script type="text/babel" src="src/screens/settings.jsx"></script>
+<script type="text/babel" src="src/screens/mypage.jsx"></script>
+<script type="text/babel" src="src/drawer.jsx"></script>
+<script type="text/babel" src="src/cmdk.jsx"></script>
+<script type="text/babel" src="src/app.jsx"></script>
+
+</body>
+</html>
