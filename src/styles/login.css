@@ -1,0 +1,196 @@
+/* ─── Login Page ──────────────────────────────────────────────────────────── */
+
+.lk-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--lk-bg-main);
+  padding: 24px;
+}
+
+.lk-login-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--lk-bg-card);
+  border: 1px solid var(--lk-border);
+  border-radius: var(--radius-xl);
+  padding: 40px 32px;
+  box-shadow: var(--shadow);
+}
+
+.lk-login-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.lk-login-logo-img {
+  height: 40px;
+  width: auto;
+}
+
+.lk-login-title {
+  font-size: var(--fs-xl);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--lk-text-primary);
+  text-align: center;
+  margin: 0 0 8px;
+}
+
+.lk-login-subtitle {
+  font-size: var(--fs-base);
+  color: var(--lk-text-muted);
+  text-align: center;
+  margin: 0 0 24px;
+}
+
+.lk-login-error {
+  padding: 10px 14px;
+  background: var(--lk-error-tint);
+  color: var(--lk-error);
+  font-size: var(--fs-sm);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+}
+
+.lk-login-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lk-login-google-btn {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid var(--lk-border);
+  border-radius: var(--radius);
+  background: var(--lk-bg-card);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 500;
+  color: var(--lk-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.lk-login-google-btn:hover {
+  border-color: var(--lk-border-strong);
+  box-shadow: var(--shadow-sm);
+}
+.lk-login-google-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lk-login-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--lk-text-muted);
+  font-size: var(--fs-sm);
+}
+.lk-login-divider::before,
+.lk-login-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--lk-border);
+}
+
+.lk-login-email-btn {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--lk-border);
+  border-radius: var(--radius);
+  background: transparent;
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 500;
+  color: var(--lk-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.lk-login-email-btn:hover {
+  background: var(--lk-surface-2);
+}
+
+.lk-login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lk-login-submit-btn {
+  width: 100%;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--lk-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  font-family: inherit;
+  font-size: var(--fs-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.lk-login-submit-btn:hover {
+  background: var(--lk-primary-medium);
+}
+.lk-login-submit-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lk-login-back-btn {
+  width: 100%;
+  height: 36px;
+  background: transparent;
+  border: none;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  color: var(--lk-text-muted);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+.lk-login-back-btn:hover {
+  color: var(--lk-text-primary);
+}
+
+.lk-login-toggle {
+  margin-top: 24px;
+  text-align: center;
+  font-size: var(--fs-sm);
+  color: var(--lk-text-muted);
+}
+.lk-login-toggle button {
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--lk-primary-strong);
+  cursor: pointer;
+  padding: 0;
+}
+.lk-login-toggle button:hover {
+  color: var(--lk-primary);
+}
+
+@media (max-width: 480px) {
+  .lk-login-card {
+    padding: 32px 20px;
+    border-radius: var(--radius-lg);
+  }
+}
