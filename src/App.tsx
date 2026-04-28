@@ -12,10 +12,6 @@ import { AppShell } from './components/layout/AppShell';
 // Auth
 import LoginRedirect from './pages/auth/LoginRedirect';
 
-// Legal (public)
-import CGU from './pages/legal/CGU';
-import Confidentialite from './pages/legal/Confidentialite';
-
 // Onboarding
 import { OnboardingLayout } from './pages/onboarding/OnboardingLayout';
 import Step1Link from './pages/onboarding/Step1Link';
@@ -123,12 +119,6 @@ export default function App() {
 
         {/* Auth */}
         <Route path="/login" element={<LoginRedirect />} />
-
-        {/* Public pages — legal */}
-        <Route path="/cgu" element={<CGU />} />
-        <Route path="/terms" element={<CGU />} />
-        <Route path="/confidentialite" element={<Confidentialite />} />
-        <Route path="/privacy" element={<Confidentialite />} />
 
         {/* Public pages — redirect to reservation_service (no auth required) */}
         <Route path="/reserve/:token" element={<ReserveRedirect />} />
