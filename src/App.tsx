@@ -10,7 +10,7 @@ import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { AppShell } from './components/layout/AppShell';
 
 // Auth
-import LoginRedirect from './pages/auth/LoginRedirect';
+import Login from './pages/auth/Login';
 
 // Onboarding
 import { OnboardingLayout } from './pages/onboarding/OnboardingLayout';
@@ -93,18 +93,7 @@ function RootRedirect() {
   }
 
   if (!user) {
-    // Cross-domain redirect vers koulis.ai/login (Next.js)
-    const hostname = window.location.hostname;
-    let loginUrl: string;
-    if (hostname === 'localhost') {
-      loginUrl = 'http://localhost:3000/login';
-    } else if (hostname === 'staging.koulis.app') {
-      loginUrl = 'https://staging.koulis.ai/login';
-    } else {
-      loginUrl = 'https://koulis.ai/login';
-    }
-    window.location.href = loginUrl;
-    return null;
+    return <Navigate to="/login" replace />;
   }
   return <Navigate to={destination!} replace />;
 }
@@ -118,7 +107,7 @@ export default function App() {
         <Route path="/" element={<RootRedirect />} />
 
         {/* Auth */}
-        <Route path="/login" element={<LoginRedirect />} />
+        <Route path="/login" element={<Login />} />
 
         {/* Public pages — redirect to reservation_service (no auth required) */}
         <Route path="/reserve/:token" element={<ReserveRedirect />} />
