@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { getMyConfig } from './lib/api';
@@ -68,37 +68,26 @@ function WidgetRedirect() {
 
 function RootRedirect() {
   const { user, loading } = useAuth();
-
-  const [timedOut, setTimedOut] = useState(false);
   const [destination, setDestination] = useState<string | null>(null);
+  const checkedRef = useRef(false);
 
   useEffect(() => {
-    const t = setTimeout(() => setTimedOut(true), 3000);
-    return () => clearTimeout(t);
-  }, []);
-
-  useEffect(() => {
-    if (!user || loading) return;
+    if (loading || !user || checkedRef.current) return;
+    checkedRef.current = true;
     getMyConfig()
       .then(() => setDestination('/dashboard'))
       .catch(() => setDestination('/onboarding/link'));
   }, [user, loading]);
 
-  if ((loading && !timedOut) || (user && !destination)) {
+  if (loading || (user && !destination)) {
     return (
-      <div style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center',
-        justifyContent: 'center', flexDirection: 'column', gap: '16px',
-      }}>
-        <div className="spinner" style={{ width: '32px', height: '32px' }} />
-        <p style={{ color: 'var(--lk-text-muted)', fontSize: '14px' }}>Chargement…</p>
+      <div className="lk-login-page">
+        <div className="spinner" />
       </div>
     );
   }
 
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!user) return <Navigate to="/login" replace />;
   return <Navigate to={destination!} replace />;
 }
 
