@@ -1,11 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Loader2, Mail } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 
+/** Nettoie les cookies Supabase stale pour eviter "Request Header Too Large" */
+function clearStaleCookies() {
+  const projects = ['xkafeggvxswmtogparae', 'kjlqlpjtiearauugzdnp'];
+  const suffixes = ['auth-token', 'auth-token-code-verifier'];
+  const domains = ['', '.koulis.app', '.lakreme.fr'];
+  for (const proj of projects) {
+    for (const suf of suffixes) {
+      const key = `sb-${proj}-${suf}`;
+      for (const domain of domains) {
+        const domainStr = domain ? `; domain=${domain}` : '';
+        document.cookie = `${key}=; path=/${domainStr}; max-age=0; SameSite=Lax`;
+        for (let i = 0; i < 10; i++) {
+          document.cookie = `${key}.${i}=; path=/${domainStr}; max-age=0; SameSite=Lax`;
+        }
+      }
+    }
+  }
+}
+
 export default function Login() {
   const { user, loading } = useAuth();
+
+  // Nettoyer les cookies stale au montage si on arrive sur /login
+  useEffect(() => { clearStaleCookies(); }, []);
   const navigate = useNavigate();
   const [mode, setMode] = useState<'choice' | 'email'>('choice');
   const [email, setEmail] = useState('');
