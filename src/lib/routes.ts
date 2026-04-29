@@ -16,7 +16,7 @@ export const ROUTES = {
   DASHBOARD: '/dashboard',
   DASHBOARD_MY_PAGE: '/dashboard/my-page',
   DASHBOARD_RESERVATIONS: '/dashboard/reservations',
-  DASHBOARD_TABLES: '/dashboard/tables',
+  DASHBOARD_FLOORPLAN: '/dashboard/floorplan',
   DASHBOARD_HOURS: '/dashboard/hours',
   DASHBOARD_WIDGET: '/dashboard/widget',
   DASHBOARD_SETTINGS: '/dashboard/settings',

@@ -13,7 +13,7 @@ export interface TourStep {
 
 export const TOUR_STEPS: readonly TourStep[] = [
   {
-    path: '/dashboard/tables',
+    path: '/dashboard/floorplan',
     title: 'Créez vos tables',
     description:
       'Commencez par définir vos tables et leur capacité. Le système assignera automatiquement la meilleure table disponible à chaque réservation.',
